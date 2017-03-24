@@ -37,15 +37,15 @@ def create_words(str_):
 
     # print(str_)
     # Replace all non-alphanumberic characters with a space.
-    new_str = re.sub(r'\W+', ' ', str(str_))
+    new_str = re.sub(r'\W+', ' ', str(str_).lower())
     return new_str.split(' ')
 
 
 def feature_engineering():
 
     # Read data.
-    df_train = pd.read_csv(TRAIN_FILE)  #, nrows=1000)
-    df_test = pd.read_csv(TEST_FILE)  #, nrows=1000)
+    df_train = pd.read_csv(TRAIN_FILE)
+    df_test = pd.read_csv(TEST_FILE)
     df_test.rename(columns={'test_id': 'id'}, inplace=True)
 
     # Merge data together.
@@ -66,10 +66,32 @@ def feature_engineering():
     data[len(df_train):].to_csv(TEST_PREPROCESS_FILE, index=False)
 
 
+def words_len(words):
+    return sum([len(word) for word in words])
+
+
 def common_words_count(words1, words2):
     set1 = set(words1)
     set2 = set(words2)
     return len(set1.intersection(set2))
+
+
+def common_words_len(words1, words2):
+    set1 = set(words1)
+    set2 = set(words2)
+    return words_len(set1.intersection(set2))
+
+
+def union_words_count(words1, words2):
+    set1 = set(words1)
+    set2 = set(words2)
+    return len(set1.union(set2))
+
+
+def union_words_len(words1, words2):
+    set1 = set(words1)
+    set2 = set(words2)
+    return words_len(set1.union(set2))
 
 
 def add_common_words_count_features(data, inplace=True):
@@ -78,8 +100,21 @@ def add_common_words_count_features(data, inplace=True):
         lambda x: common_words_count(x['words1'], x['words2']), axis=1)
     data['len1'] = data['words1'].apply(lambda x: len(x))
     data['len2'] = data['words2'].apply(lambda x: len(x))
+    data['lenunion'] = data.apply(
+        lambda x: union_words_count(x['words1'], x['words2']), axis=1)
+    data['distance1'] = data['common_words'] / data['lenunion']
 
-    add_features('common_words', ['common_words', 'len1', 'len2'])
+    data['common_words_len'] = data.apply(
+        lambda x: common_words_len(x['words1'], x['words2']), axis=1)
+    data['abs_len1'] = data['words1'].apply(lambda x: words_len(x))
+    data['abs_len2'] = data['words2'].apply(lambda x: words_len(x))
+    data['abs_lenunion'] = data.apply(
+        lambda x: union_words_len(x['words1'], x['words2']), axis=1)
+    data['absdistance1'] = data['common_words_len'] / data['abs_lenunion']
+
+    add_features('common_words', ['common_words', 'len1', 'len2', 'lenunion',
+                                  'distance1', 'common_words_len', 'abs_len1',
+                                  'abs_len2', 'abs_lenunion', 'absdistance1'])
     return data
 
 
