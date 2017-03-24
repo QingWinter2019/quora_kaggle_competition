@@ -13,15 +13,15 @@ __author__
 
 """
 
+import logging
 import os
 import pandas as pd
 from xgboost import XGBClassifier
-import pickle
-import re
+from sklearn.cross_validation import cross_val_score
 
 from globals import CONFIG
 from feature_classification import get_features
-
+from cv_utils import get_cv
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -58,8 +58,19 @@ def modelling():
                             reg_lambda=1,
                             scale_pos_weight=1,
                             seed=2016,
-                            silent=False,
+                            silent=True,
                             subsample=0.9)
+
+    cv = get_cv(train_data['is_duplicate'])
+
+    scores = cross_val_score(estimator=xgb_clf,
+                             X=train_data[features].values,
+                             y=train_data['is_duplicate'].values,
+                             scoring='log_loss',
+                             cv=cv,
+                             n_jobs=1)
+    logging.info(scores)
+
     xgb_clf.fit(train_data[features], train_data['is_duplicate'])
 
     test_data['is_duplicate'] = xgb_clf.predict_proba(test_data[features])[:, 1]
@@ -69,4 +80,7 @@ def modelling():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(levelname)s: %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p')
     modelling()
