@@ -21,6 +21,8 @@ import re
 from feature_classification import add_features, dump_features
 from globals import CONFIG
 
+from tfidf_features import add_tfidf_features
+
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 DATA_DIR = os.path.join(BASE_DIR, CONFIG['DATA_DIR'])
@@ -59,6 +61,8 @@ def feature_engineering():
 
     # Add features.
     data = add_common_words_count_features(data)
+    data = add_tfidf_features(data, columns=['question2'], qcol='question1', unique=False)
+
     dump_features()
 
     # Split data back into train and test dataset and pickle.
