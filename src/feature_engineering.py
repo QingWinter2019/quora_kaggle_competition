@@ -16,12 +16,14 @@ __author__
 import os
 import pandas as pd
 import pickle
+import logging
 import re
 
 from feature_classification import add_features, dump_features
 from globals import CONFIG
 
 from tfidf_features import add_tfidf_features
+from tfidf_svd_features import add_tfidf_svd_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -33,6 +35,10 @@ TRAIN_FILE = os.path.join(DATA_DIR, 'train.csv')
 TEST_FILE = os.path.join(DATA_DIR, 'test.csv')
 TRAIN_PREPROCESS_FILE = os.path.join(DATA_DIR, 'train_preprocess.csv')
 TEST_PREPROCESS_FILE = os.path.join(DATA_DIR, 'test_preprocess.csv')
+
+# Number of rows to read from files.
+TEST_NROWS = CONFIG['TEST_NROWS']
+TRAIN_NROWS = CONFIG['TRAIN_NROWS']
 
 
 def create_words(str_):
@@ -46,8 +52,8 @@ def create_words(str_):
 def feature_engineering():
 
     # Read data.
-    df_train = pd.read_csv(TRAIN_FILE)
-    df_test = pd.read_csv(TEST_FILE)
+    df_train = pd.read_csv(TRAIN_FILE, nrows=TRAIN_NROWS)
+    df_test = pd.read_csv(TEST_FILE, nrows=TEST_NROWS)
     df_test.rename(columns={'test_id': 'id'}, inplace=True)
 
     # Merge data together.
@@ -55,13 +61,16 @@ def feature_engineering():
     data = pd.concat([df_train[wanted_cols + ['is_duplicate']],
                       df_test[wanted_cols]])
 
-    #
+    # Preprocess data.
+    data['question1'] = data['question1'].apply(lambda x: str(x))
+    data['question2'] = data['question2'].apply(lambda x: str(x))
     data['words1'] = data['question1'].apply(lambda x: create_words(x))
     data['words2'] = data['question2'].apply(lambda x: create_words(x))
 
     # Add features.
     data = add_common_words_count_features(data)
     data = add_tfidf_features(data, columns=['question2'], qcol='question1', unique=False)
+    data = add_tfidf_svd_features(data, columns=['question1', 'question2'])
 
     dump_features()
 
@@ -123,4 +132,7 @@ def add_common_words_count_features(data, inplace=True):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO,
+                        format='%(asctime)s %(levelname)s: %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p')
     feature_engineering()
