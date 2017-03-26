@@ -1,4 +1,4 @@
-import time
+import logging
 import pandas as pd
 
 from feature_classification import add_features
@@ -17,9 +17,7 @@ def add_tfidf_features(df_all, columns, qcol, unique=False):
 
         for c in columns:
 
-            time_start = time.time()
-
-            print("Doing TFIDF Analysis, it may take some time")
+            logging.info("Doing TFIDF Analysis, it may take some time")
             if unique:
                 create_idf(df_all[c].unique())
             else:
@@ -49,9 +47,9 @@ def add_tfidf_features(df_all, columns, qcol, unique=False):
 
             df.drop(['temp'], axis=1, inplace=True)
 
-            print("TFIDF analysis finished, time elapsed " + str(time.time() - time_start) + " sec.")
+            logging.info('TFIDF analysis is finished')
 
-    df.drop('id', inplace=False)
+    df.drop('id', axis=1, inplace=True)
     add_features('tfidf', df.columns.tolist())
 
     df_all = pd.concat([df_all, df], axis=1)
