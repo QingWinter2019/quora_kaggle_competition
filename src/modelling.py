@@ -37,14 +37,16 @@ PRED_FILE = os.path.join(OUTPUT_DIR, 'pred.csv')
 
 def modelling():
 
+    logging.info('Reading data from files.')
     train_data = pd.read_csv(TRAIN_FILE)
     test_data = pd.read_csv(TEST_FILE)
+    logging.info('Data was succesfully read')
 
     features = get_features()
 
     xgb_clf = XGBClassifier(base_score=0.5,
                             colsample_bylevel=1,
-                            colsample_bytree=1,
+                            colsample_bytree=0.9,
                             gamma=0.7,
                             learning_rate=0.03,
                             max_delta_step=0,
