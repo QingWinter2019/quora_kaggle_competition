@@ -133,7 +133,7 @@ def create_common_words_count_features(data):
     res['absdistance1'] = res['common_words_len'] / res['abs_lenunion']
     res['absdistance2'] = res['common_words_len'] / (res['abs_len1'] + res['abs_len2'])
 
-    features = res.columns().tolist()
+    features = res.columns.tolist()
     add_features(feature_class, features)
     dump_features(feature_class, res)
     logging.info('Common words features are created and saved to pickle file.')
