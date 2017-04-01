@@ -1,14 +1,21 @@
 import logging
 import pandas as pd
 
+from pickle_utils import dump_features, check_if_exists
 from feature_classification import add_features
-from tfidf import *
+from tfidf import create_idf, tfidf1, tfidf2
 
 TFIDF_ANALYSIS = True
 TFIDF2 = True
 
 
-def add_tfidf_features(df_all, columns, qcol, unique=False):
+def create_tfidf_features(df_all, columns, qcol, unique=False):
+
+    logging.info('Creating tfidf features')
+    feature_class = 'tfidf'
+    if check_if_exists(feature_class):
+        logging.info('Tfidf features already created.')
+        return
 
     df = pd.DataFrame()
     df['id'] = df_all['id']
@@ -41,7 +48,7 @@ def add_tfidf_features(df_all, columns, qcol, unique=False):
                 ind = 0
                 for t in types:
                     for prefix in prefixes:
-                        name = qcol + prefix + t + '_tfidf_' + c + suffix
+                        name = qcol + prefix + t + '_tfidf_' + c + '_' + suffix
                         df[name] = df['temp'].map(lambda x: x[ind])
                         ind += 1
 
@@ -50,8 +57,6 @@ def add_tfidf_features(df_all, columns, qcol, unique=False):
             logging.info('TFIDF analysis is finished')
 
     df.drop('id', axis=1, inplace=True)
-    add_features('tfidf', df.columns.tolist())
-
-    df_all = pd.concat([df_all, df], axis=1)
-
-    return df_all
+    add_features(feature_class, df.columns.tolist())
+    dump_features(feature_class, df)
+    logging.info('Tfidf features are created and saved to pickle file.')

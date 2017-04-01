@@ -20,7 +20,8 @@ from xgboost import XGBClassifier
 from sklearn.cross_validation import cross_val_score
 
 from globals import CONFIG
-from feature_classification import get_features
+from feature_classification import get_features, get_feature_classes
+from pickle_utils import load_X
 from cv_utils import get_cv
 
 # Global directories.
@@ -30,55 +31,82 @@ OUTPUT_DIR = os.path.join(BASE_DIR, CONFIG['OUTPUT_DIR'])
 PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
 
 # Global files.
-TRAIN_FILE = os.path.join(DATA_DIR, 'train_preprocess.csv')
-TEST_FILE = os.path.join(DATA_DIR, 'test_preprocess.csv')
+TRAIN_FILE = os.path.join(DATA_DIR, 'train.csv')
+TEST_FILE = os.path.join(DATA_DIR, 'test.csv')
 PRED_FILE = os.path.join(OUTPUT_DIR, 'pred.csv')
+
+# Number of rows to read from files.
+TEST_NROWS = CONFIG['TEST_NROWS']
+TRAIN_NROWS = CONFIG['TRAIN_NROWS']
 
 
 def modelling():
 
-    logging.info('Reading data from files.')
-    train_data = pd.read_csv(TRAIN_FILE)
-    test_data = pd.read_csv(TEST_FILE)
-    logging.info('Data was succesfully read')
+    logging.info('MODELLING')
 
-    features = get_features()
+    class_features = [
+        ['common_words', 'tfidf', 'common_vocabulary_svd_tfidf'],
+        ['common_words', 'tfidf', 'svd_tfidf']]
 
-    xgb_clf = XGBClassifier(base_score=0.5,
-                            colsample_bylevel=1,
-                            colsample_bytree=0.9,
-                            gamma=0.7,
-                            learning_rate=0.03,
-                            max_delta_step=0,
-                            max_depth=9,
-                            min_child_weight=9.0,
-                            missing=None,
-                            n_estimators=430,
-                            nthread=-1,
-                            objective='binary:logistic',
-                            reg_alpha=0,
-                            reg_lambda=1,
-                            scale_pos_weight=1,
-                            seed=2016,
-                            silent=True,
-                            subsample=0.9)
+    pred_files = [
+        os.path.join(OUTPUT_DIR, 'pred_common.csv'),
+        os.path.join(OUTPUT_DIR, 'pred_regular.csv')
+    ]
 
-    cv = get_cv(train_data['is_duplicate'])
+    preds = pd.read_csv(TEST_FILE,
+                        usecols=['test_id'],
+                        nrows=TEST_NROWS)
+    y_train = pd.read_csv(TRAIN_FILE,
+                          usecols=['is_duplicate'],
+                          nrows=TRAIN_NROWS)
+    y_train = y_train['is_duplicate'].values
 
-    scores = cross_val_score(estimator=xgb_clf,
-                             X=train_data[features].values,
-                             y=train_data['is_duplicate'].values,
-                             scoring='log_loss',
-                             cv=cv,
-                             n_jobs=1)
-    logging.info(scores)
+    for (class_feature, pred_file) in zip(class_features, pred_files):
 
-    xgb_clf.fit(train_data[features], train_data['is_duplicate'])
+        logging.info('Reading data from files.')
+        X_train, X_test = load_X(class_feature, len(y_train))
+        logging.info('Data was succesfully read')
 
-    test_data['is_duplicate'] = xgb_clf.predict_proba(test_data[features])[:, 1]
+        xgb_clf = XGBClassifier(base_score=0.5,
+                                colsample_bylevel=1,
+                                colsample_bytree=0.9,
+                                gamma=0.7,
+                                learning_rate=0.03,
+                                max_delta_step=0,
+                                max_depth=9,
+                                min_child_weight=9.0,
+                                missing=None,
+                                n_estimators=430,
+                                nthread=-1,
+                                objective='binary:logistic',
+                                reg_alpha=0,
+                                reg_lambda=1,
+                                scale_pos_weight=1,
+                                seed=2016,
+                                silent=True,
+                                subsample=0.9)
 
-    test_data.rename(columns={'id': 'test_id'}, inplace=True)
-    test_data[['test_id', 'is_duplicate']].to_csv(PRED_FILE, index=False)
+        cv = get_cv(y_train)
+        logging.info('Shape of X_train: %s' % str(X_train.shape))
+        logging.info('Doing Cross Validation')
+        scores = cross_val_score(estimator=xgb_clf,
+                                 X=X_train,
+                                 y=y_train,
+                                 scoring='log_loss',
+                                 cv=cv,
+                                 n_jobs=1)
+        logging.info(scores)
+        logging.info('Finished Cross Validation')
+
+        logging.info('Fitting the model')
+        xgb_clf.fit(X_train, y_train)
+        logging.info('Finished fitting the model')
+
+        logging.info('Generating model predictions')
+        preds['is_duplicate'] = xgb_clf.predict_proba(X_test)[:, 1]
+        preds.to_csv(pred_file, index=False)
+
+    logging.info('FINISHED MODELLING.')
 
 
 if __name__ == '__main__':

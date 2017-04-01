@@ -37,7 +37,7 @@ def tfidf_score(word, str1, type='binary'):
         scores.append(log(1 + freq) * idf_scores[word])
 
         # compute max freq
-        max_freq = 0
+        max_freq = 1
         if str1 in max_freqs:
             max_freq = max_freqs[str1]
         else:
@@ -64,7 +64,7 @@ def tfidf_score(word, str1, type='binary'):
         return log(1 + freq) * idf_scores[word]
 
     # compute max freq
-    max_freq = 0
+    max_freq = 1
     if str1 in max_freqs:
         max_freq = max_freqs[str1]
     else:
@@ -119,15 +119,18 @@ def tfidf1(str1, str2, type='binary'):
             score = tfidf_score(word, str2, type=type)
             scores.append(score)
 
+    len1 = max(len(words1), 1)
+    len2 = max(len(words2), 1)
+
     if type == 'all':
         scores = transform_scores(scores)
 
-        return sum(scores[0]), sum(scores[1]), sum(scores[2]), sum(scores[3]), \
-               max(scores[0]), max(scores[1]), max(scores[2]), max(scores[3]), \
-               sum(scores[0])/len(words1), sum(scores[1])/len(words1), \
-               sum(scores[2])/len(words1), sum(scores[3])/len(words1)
+        return (sum(scores[0]), sum(scores[1]), sum(scores[2]), sum(scores[3]),
+                max(scores[0]), max(scores[1]), max(scores[2]), max(scores[3]),
+                sum(scores[0])/(len1 + len2), sum(scores[1])/(len1 + len2),
+                sum(scores[2])/(len1 + len2), sum(scores[3])/(len1 + len2))
     else:
-        return sum(scores), max(scores), sum(scores) / len(words1)
+        return sum(scores), max(scores), sum(scores) / (len1 + len2)
 
 
 def tfidf2(str1, str2, type='binary'):
@@ -160,15 +163,18 @@ def tfidf2(str1, str2, type='binary'):
             if type == 'all':
                 score = mean_scores(transform_scores(loc_scores))
             else:
-                score = sum(loc_scores)/len(loc_scores)
+                score = sum(loc_scores)/max(len(loc_scores), 1)
             scores.append(score)
 
-    if type == 'all':
+    len1 = max(len(words1), 1)
+    len2 = max(len(words2), 1)
 
+    if type == 'all':
         scores = transform_scores(scores)
-        return sum(scores[0]), sum(scores[1]), sum(scores[2]), sum(scores[3]), \
-               max(scores[0]), max(scores[1]), max(scores[2]), max(scores[3]), \
-               sum(scores[0])/len(words1), sum(scores[1])/len(words1), \
-               sum(scores[2])/len(words1), sum(scores[3])/len(words1)
+
+        return (sum(scores[0]), sum(scores[1]), sum(scores[2]), sum(scores[3]),
+                max(scores[0]), max(scores[1]), max(scores[2]), max(scores[3]),
+                sum(scores[0]) / (len1 + len2), sum(scores[1]) / (len1 + len2),
+                sum(scores[2]) / (len1 + len2), sum(scores[3]) / (len1 + len2))
     else:
-        return sum(scores), max(scores), sum(scores) / len(words1)
+        return sum(scores), max(scores), sum(scores) / (len1 + len2)

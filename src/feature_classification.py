@@ -42,9 +42,10 @@ def _load_data():
     return FEATURE_CLASSES
 
 
-def dump_features():
+def dump_feature_classes_and_dict():
     """Save features (classes and dict) to the pickle file."""
 
+    _load_data()
     with open(PICKLE_FILE, 'wb') as file:
         data = {'feature_classes': FEATURE_CLASSES,
                 'feature_dict': FEATURE_DICT}
@@ -104,8 +105,9 @@ def add_features(f_class, features):
     :return:
     """
 
-    assert_message = f_class + ' already exists in the list'
-    assert f_class not in FEATURE_CLASSES, assert_message
+    _load_data()
 
-    FEATURE_CLASSES.append(f_class)
+    # It is possible that some classes are updated.
+    if f_class not in FEATURE_CLASSES:
+        FEATURE_CLASSES.append(f_class)
     FEATURE_DICT[f_class] = features

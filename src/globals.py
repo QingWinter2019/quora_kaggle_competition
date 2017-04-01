@@ -12,7 +12,7 @@ CONFIG_test = {'CONFIG': 'config_test',
                'PICKLED_DIR': 'testpickled',
                'DATA_DIR': 'data',
                'TEST_NROWS': 100,
-               'TRAIN_NROWS': None
+               'TRAIN_NROWS': 10000
                }
 
 # Select a configuration to run.
