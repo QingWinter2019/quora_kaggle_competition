@@ -12,12 +12,7 @@ PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
 def load_X(feature_classes, train_size):
 
     logging.info('Loading features %s' % feature_classes)
-    data = []
-    for feature_class in feature_classes:
-        pickle_file = os.path.join(PICKLE_DIR,
-                                   '%s_features.pickle' % feature_class)
-        with open(pickle_file, 'rb') as file:
-            data.append(pickle.load(file))
+    data = [load_features(feature_class) for feature_class in feature_classes]
 
     for df in data:
         df.reset_index(inplace=True, drop=True)
@@ -25,6 +20,15 @@ def load_X(feature_classes, train_size):
     df = pd.concat(data, axis=1, ignore_index=True)
     logging.info('Features are loaded.')
     return df[:train_size], df[train_size:]
+
+
+def load_features(feature_class):
+
+    pickle_file = os.path.join(PICKLE_DIR, '%s_features.pickle' % feature_class)
+    with open(pickle_file, 'rb') as file:
+        data = pickle.load(file)
+
+    return data
 
 
 def dump_features(feature_class, data):
