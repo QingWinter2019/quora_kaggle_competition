@@ -26,6 +26,8 @@ from tfidf_features import create_tfidf_features
 from tfidf_svd_features import create_svd_tfidf_features, create_raw_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_svd_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_raw_tfidf_features
+from grouping_features import create_grouping_features
+
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -68,6 +70,7 @@ def feature_engineering():
 
     # Create features.
     create_common_words_count_features(data)
+    create_grouping_features(data)
     create_tfidf_features(data, columns=['question2'], qcol='question1', unique=False)
     create_raw_tfidf_features(data, columns=['question1', 'question2'])
     create_svd_tfidf_features(columns=['question1', 'question2'])

@@ -45,8 +45,8 @@ def modelling():
     logging.info('MODELLING')
 
     class_features = [
-        ['common_words', 'tfidf', 'common_vocabulary_svd_tfidf'],
-        ['common_words', 'tfidf', 'svd_tfidf']]
+        ['common_words', 'tfidf', 'svd_tfidf'],
+        ['common_words', 'grouping_features', 'tfidf', 'svd_tfidf']]
 
     pred_files = [
         os.path.join(OUTPUT_DIR, 'pred_common.csv'),
