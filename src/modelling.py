@@ -18,6 +18,7 @@ import os
 import pandas as pd
 from xgboost import XGBClassifier
 from sklearn.cross_validation import cross_val_score
+from sklearn.linear_model import LogisticRegression
 
 from globals import CONFIG
 from feature_classification import get_features, get_feature_classes
@@ -45,8 +46,8 @@ def modelling():
     logging.info('MODELLING')
 
     class_features = [
-        ['common_words', 'tfidf', 'svd_tfidf'],
-        ['common_words', 'grouping_features', 'tfidf', 'svd_tfidf']]
+        ['common_words', 'grouping', 'tfidf', 'common_vocabulary_svd_tfidf', 'distance_tfidf'],
+        ['common_words', 'grouping', 'tfidf', 'svd_tfidf', 'distance_tfidf']]
 
     pred_files = [
         os.path.join(OUTPUT_DIR, 'pred_common.csv'),
@@ -64,32 +65,35 @@ def modelling():
     for (class_feature, pred_file) in zip(class_features, pred_files):
 
         logging.info('Reading data from files.')
-        X_train, X_test = load_X(class_feature, len(y_train))
+        X_train, X_test = load_X(class_feature, len(y_train), sparse=False)
         logging.info('Data was succesfully read')
 
-        xgb_clf = XGBClassifier(base_score=0.5,
-                                colsample_bylevel=1,
-                                colsample_bytree=0.9,
-                                gamma=0.7,
-                                learning_rate=0.03,
-                                max_delta_step=0,
-                                max_depth=9,
-                                min_child_weight=9.0,
-                                missing=None,
-                                n_estimators=430,
-                                nthread=-1,
-                                objective='binary:logistic',
-                                reg_alpha=0,
-                                reg_lambda=1,
-                                scale_pos_weight=1,
-                                seed=2016,
-                                silent=True,
-                                subsample=0.9)
+        clf = XGBClassifier(base_score=0.5,
+                            colsample_bylevel=1,
+                            colsample_bytree=0.9,
+                            gamma=0.7,
+                            learning_rate=0.03,
+                            max_delta_step=0,
+                            max_depth=9,
+                            min_child_weight=9.0,
+                            missing=None,
+                            n_estimators=430,
+                            nthread=-1,
+                            objective='binary:logistic',
+                            reg_alpha=0,
+                            reg_lambda=1,
+                            scale_pos_weight=1,
+                            seed=2016,
+                            silent=True,
+                            subsample=0.9)
+
+        # uncomment for logistic regression
+        # lr = LogisticRegression(C=10)
 
         cv = get_cv(y_train)
         logging.info('Shape of X_train: %s' % str(X_train.shape))
         logging.info('Doing Cross Validation')
-        scores = cross_val_score(estimator=xgb_clf,
+        scores = cross_val_score(estimator=clf,
                                  X=X_train,
                                  y=y_train,
                                  scoring='log_loss',
@@ -99,11 +103,11 @@ def modelling():
         logging.info('Finished Cross Validation')
 
         logging.info('Fitting the model')
-        xgb_clf.fit(X_train, y_train)
+        clf.fit(X_train, y_train)
         logging.info('Finished fitting the model')
 
         logging.info('Generating model predictions')
-        preds['is_duplicate'] = xgb_clf.predict_proba(X_test)[:, 1]
+        preds['is_duplicate'] = clf.predict_proba(X_test)[:, 1]
         preds.to_csv(pred_file, index=False)
 
     logging.info('FINISHED MODELLING.')

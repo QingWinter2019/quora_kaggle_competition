@@ -2,6 +2,8 @@ import logging
 import os
 import pandas as pd
 import pickle
+import scipy.sparse as sp
+from sklearn.preprocessing import normalize
 
 from globals import CONFIG
 
@@ -9,17 +11,23 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
 
 
-def load_X(feature_classes, train_size):
+def load_X(feature_classes, train_size, sparse=False, norm=True):
 
     logging.info('Loading features %s' % feature_classes)
     data = [load_features(feature_class) for feature_class in feature_classes]
 
-    for df in data:
-        df.reset_index(inplace=True, drop=True)
+    if sparse:
+        data = [sp.csr_matrix(features) for features in data]
+        res = sp.hstack(data)
+        if norm:
+            res = normalize(res, norm='l1', axis=1)
+    else:
+        for df in data:
+            df.reset_index(inplace=True, drop=True)
+        res = pd.concat(data, axis=1, ignore_index=True).values
 
-    df = pd.concat(data, axis=1, ignore_index=True)
     logging.info('Features are loaded.')
-    return df[:train_size], df[train_size:]
+    return res[:train_size], res[train_size:]
 
 
 def load_features(feature_class):
