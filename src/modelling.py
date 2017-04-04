@@ -46,12 +46,12 @@ def modelling():
     logging.info('MODELLING')
 
     class_features = [
-        # ['raw_tfidf_question1', 'raw_tfidf_question2', 'common_words', 'grouping_features', 'tfidf']]
+        ['common_words', 'grouping', 'tfidf', 'common_vocabulary_svd_tfidf', 'distance_tfidf'],
         ['common_words', 'grouping', 'tfidf', 'svd_tfidf', 'distance_tfidf']]
 
     pred_files = [
-        # os.path.join(OUTPUT_DIR, 'pred_common.csv'),
-        os.path.join(OUTPUT_DIR, 'preds.csv')
+        os.path.join(OUTPUT_DIR, 'pred_common.csv'),
+        os.path.join(OUTPUT_DIR, 'pred_regular.csv')
     ]
 
     preds = pd.read_csv(TEST_FILE,
