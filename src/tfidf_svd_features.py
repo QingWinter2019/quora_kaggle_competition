@@ -2,13 +2,12 @@ import logging
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.decomposition import TruncatedSVD
-import numpy as np
 import pandas as pd
-import pickle
 
 from globals import CONFIG
 from feature_classification import add_features
-from pickle_utils import check_if_exists, dump_features
+from pickle_utils import check_if_exists, dump_features, load_features
+from distance_utils import cosine_sim, rmse
 
 # Global Tfidf parameters.
 MAX_DF = 0.75
@@ -85,6 +84,8 @@ def create_common_vocabulary_raw_tfidf_features(df_all, col1, col2):
 
     res = X_col1.multiply(X_col2)
 
+    dump_features('common_vocabulary_raw_tfidf_%s' % col1, X_col1)
+    dump_features('common_vocabulary_raw_tfidf_%s' % col2, X_col2)
     dump_features(feature_class, res)
     logging.info('Common vocabulary Raw tfidf features are created and saved'
                  'to pickle file.')
@@ -102,18 +103,12 @@ def create_svd_tfidf_features(columns, n_components=N_COMPONENTS):
     svd = TruncatedSVD(n_components=n_components, n_iter=15)
 
     for c in columns:
-        pickle_filename = 'raw_tfidf_%s_features.pickle' % c
-        pickle_file = os.path.join(PICKLE_DIR, pickle_filename)
-
-        with open(pickle_file, 'rb') as file:
-            X = pickle.load(file)
-
+        X = load_features('raw_tfidf_%s' % c)
         X_transformed = svd.fit_transform(X)
         svd_columns = ['tfidf_svd_' + c + '_' + str(i) for i in range(n_components)]
         data.append(pd.DataFrame(X_transformed, columns=svd_columns))
 
-    df = pd.concat(data, axis=1)
-    df.reset_index(inplace=True, drop=True)
+    df = pd.concat(data, axis=1, ignore_index=True)
     add_features(feature_class, df.columns.tolist())
     dump_features(feature_class, df)
 
@@ -131,12 +126,7 @@ def create_common_vocabulary_svd_tfidf_features(n_components=2*N_COMPONENTS):
 
     svd = TruncatedSVD(n_components=n_components, n_iter=15)
 
-    pickle_filename = 'common_vocabulary_raw_tfidf_features.pickle'
-    pickle_file = os.path.join(PICKLE_DIR, pickle_filename)
-
-    with open(pickle_file, 'rb') as file:
-        X = pickle.load(file)
-
+    X = load_features('common_vocabulary_raw_tfidf')
     X_transformed = svd.fit_transform(X)
     svd_columns = ['common_vocabulary_tfidf_svd_' + str(i) for i in range(n_components)]
     data = pd.DataFrame(X_transformed, columns=svd_columns)
@@ -146,3 +136,26 @@ def create_common_vocabulary_svd_tfidf_features(n_components=2*N_COMPONENTS):
 
     logging.info('Shape of common vocabulary svd tfidf features is %s' % str(data.shape))
     logging.info('Common vocabulary SVD tfidf features are created.')
+
+
+def create_distance_tfidf_features(col1, col2):
+
+    logging.info('Creating distance tfidf features.')
+    feature_class = 'distance_tfidf'
+    if check_if_exists(feature_class):
+        logging.info('Distance tfidf features already created.')
+        return
+
+    X_col1 = load_features('common_vocabulary_raw_tfidf_%s' % col1)
+    X_col2 = load_features('common_vocabulary_raw_tfidf_%s' % col2)
+
+    res = pd.DataFrame()
+    res['cosine_similarity_%s_%s' % (col1, col2)] = (
+        list(map(cosine_sim, X_col1, X_col2)))
+    res['rmse_%s_%s' % (col1, col2)] = (
+        list(map(rmse, X_col1, X_col2)))
+
+    add_features(feature_class, res.columns.tolist())
+    dump_features(feature_class, res)
+
+    logging.info('Distance tfidf features are created.')

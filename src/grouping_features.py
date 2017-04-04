@@ -9,17 +9,23 @@ import np_utils
 def create_grouping_features(df_all):
 
     logging.info('Creating grouping features.')
-    feature_class = 'grouping_features'
+    feature_class = 'grouping'
     if check_if_exists(feature_class):
         logging.info('Grouping features already created.')
         return
 
     columns = ['distance1', 'distance2', 'absdistance1', 'absdistance2']
-    common_words = load_features('common_words')[columns]
+    common_words = load_features('common_words')[columns].reset_index(drop=True)
+    distance_tfidf_features = load_features('distance_tfidf').reset_index(drop=True)
+    columns += distance_tfidf_features.columns.tolist()
 
-    df_q1_q2 = pd.concat([common_words, df_all[['question1', 'question2']]],
+    df_q1_q2 = pd.concat([common_words,
+                          distance_tfidf_features,
+                          df_all[['question1', 'question2']].reset_index(drop=True)],
                          axis=1)
-    df_q2_q1 = pd.concat([common_words, df_all[['question2', 'question1']]],
+    df_q2_q1 = pd.concat([common_words,
+                          distance_tfidf_features,
+                          df_all[['question2', 'question1']].reset_index(drop=True)],
                          axis=1)
     df_q2_q1.rename(columns={'question1': 'question2',
                              'question2': 'question1'})

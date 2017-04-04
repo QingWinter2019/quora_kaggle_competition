@@ -26,6 +26,7 @@ from tfidf_features import create_tfidf_features
 from tfidf_svd_features import create_svd_tfidf_features, create_raw_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_svd_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_raw_tfidf_features
+from tfidf_svd_features import create_distance_tfidf_features
 from grouping_features import create_grouping_features
 
 
@@ -60,7 +61,7 @@ def feature_engineering():
     # Merge data together.
     wanted_cols = ['id', 'question1', 'question2']
     data = pd.concat([df_train[wanted_cols + ['is_duplicate']],
-                      df_test[wanted_cols]])
+                      df_test[wanted_cols]], ignore_index=True)
 
     # Preprocess data.
     data['question1'] = data['question1'].apply(lambda x: str(x))
@@ -76,6 +77,7 @@ def feature_engineering():
     create_svd_tfidf_features(columns=['question1', 'question2'])
     create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2')
     create_common_vocabulary_svd_tfidf_features()
+    create_distance_tfidf_features('question1', 'question2')
 
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
