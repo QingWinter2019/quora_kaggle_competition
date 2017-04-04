@@ -71,13 +71,13 @@ def feature_engineering():
 
     # Create features.
     create_common_words_count_features(data)
-    create_grouping_features(data)
     create_tfidf_features(data, columns=['question2'], qcol='question1', unique=False)
     create_raw_tfidf_features(data, columns=['question1', 'question2'])
     create_svd_tfidf_features(columns=['question1', 'question2'])
     create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2')
     create_common_vocabulary_svd_tfidf_features()
     create_distance_tfidf_features('question1', 'question2')
+    create_grouping_features(data)
 
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
