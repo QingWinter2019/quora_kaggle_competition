@@ -28,6 +28,7 @@ from tfidf_svd_features import create_common_vocabulary_svd_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_raw_tfidf_features
 from tfidf_svd_features import create_distance_tfidf_features
 from grouping_features import create_grouping_features
+from word2vec_features import create_word2vec_features
 
 
 # Global directories.
@@ -77,6 +78,7 @@ def feature_engineering():
     create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2')
     create_common_vocabulary_svd_tfidf_features()
     create_distance_tfidf_features('question1', 'question2')
+    create_word2vec_features(data, 'words1', 'words2')
     create_grouping_features(data)
 
     dump_feature_classes_and_dict()

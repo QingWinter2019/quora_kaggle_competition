@@ -18,13 +18,17 @@ def create_grouping_features(df_all):
     common_words = load_features('common_words')[columns].reset_index(drop=True)
     distance_tfidf_features = load_features('distance_tfidf').reset_index(drop=True)
     columns += distance_tfidf_features.columns.tolist()
+    word2vec_features = load_features('word2vec').reset_index(drop=True)
+    columns += word2vec_features.columns.tolist()
 
     df_q1_q2 = pd.concat([common_words,
                           distance_tfidf_features,
+                          word2vec_features,
                           df_all[['question1', 'question2']].reset_index(drop=True)],
                          axis=1)
     df_q2_q1 = pd.concat([common_words,
                           distance_tfidf_features,
+                          word2vec_features,
                           df_all[['question2', 'question1']].reset_index(drop=True)],
                          axis=1)
     df_q2_q1.rename(columns={'question1': 'question2',

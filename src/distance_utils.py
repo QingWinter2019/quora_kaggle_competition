@@ -9,5 +9,8 @@ def cosine_sim(v1, v2):
 
 def rmse(v1, v2):
     diff = v2 - v1
-    res = np.sqrt(np.mean(diff.multiply(diff)))
+    try:
+        res = np.sqrt(np.mean(diff.multiply(diff)))
+    except:
+        res = np.sqrt(np.mean(np.multiply(diff, diff)))
     return res
