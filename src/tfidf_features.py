@@ -9,10 +9,10 @@ TFIDF_ANALYSIS = True
 TFIDF2 = True
 
 
-def create_tfidf_features(df_all, columns, qcol, unique=False):
+def create_tfidf_features(df_all, columns, qcol, unique=False, pref=''):
 
     logging.info('Creating tfidf features')
-    feature_class = 'tfidf'
+    feature_class = pref + 'tfidf'
     if check_if_exists(feature_class):
         logging.info('Tfidf features already created.')
         return
@@ -43,7 +43,8 @@ def create_tfidf_features(df_all, columns, qcol, unique=False):
                 if (func == tfidf2) and (not TFIDF2):
                     continue
 
-                df['temp'] = df_all.apply(lambda x: func(str(x[qcol]), str(x[c]), type='all'), axis=1)
+                df['temp'] = df_all.apply(
+                    lambda x: func(x[qcol], x[c], type='all'), axis=1)
 
                 ind = 0
                 for t in types:

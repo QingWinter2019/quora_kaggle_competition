@@ -22,10 +22,10 @@ BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
 
 
-def create_raw_tfidf_features(df_all, columns):
+def create_raw_tfidf_features(df_all, columns, pref=''):
 
     logging.info('Creating raw tfidf features.')
-    feature_class = 'raw_tfidf_%s' % columns[0]
+    feature_class = '%sraw_tfidf_%s' % (pref, columns[0])
     if check_if_exists(feature_class):
         logging.info('Raw tfidf features already created.')
         return
@@ -49,16 +49,16 @@ def create_raw_tfidf_features(df_all, columns):
         X = tfidf_vectorizer.fit_transform(df_all[c])
         logging.info('Shape of Tfidf transform matrix is %s' % str(X.shape))
 
-        feature_class = 'raw_tfidf_%s' % c
+        feature_class = '%sraw_tfidf_%s' % (pref, c)
         dump_features(feature_class, X)
 
     logging.info('Raw tfidf features are created and saved to pickle file.')
 
 
-def create_common_vocabulary_raw_tfidf_features(df_all, col1, col2):
+def create_common_vocabulary_raw_tfidf_features(df_all, col1, col2, pref=''):
 
     logging.info('Creating common vocabulary raw tfidf features.')
-    feature_class = 'common_vocabulary_raw_tfidf'
+    feature_class = pref + 'common_vocabulary_raw_tfidf'
     if check_if_exists(feature_class):
         logging.info('Common vocabulary raw tfidf features already created.')
         return
@@ -84,17 +84,17 @@ def create_common_vocabulary_raw_tfidf_features(df_all, col1, col2):
 
     res = X_col1.multiply(X_col2)
 
-    dump_features('common_vocabulary_raw_tfidf_%s' % col1, X_col1)
-    dump_features('common_vocabulary_raw_tfidf_%s' % col2, X_col2)
+    dump_features('%scommon_vocabulary_raw_tfidf_%s' % (pref, col1), X_col1)
+    dump_features('%scommon_vocabulary_raw_tfidf_%s' % (pref, col2), X_col2)
     dump_features(feature_class, res)
     logging.info('Common vocabulary Raw tfidf features are created and saved'
                  'to pickle file.')
 
 
-def create_svd_tfidf_features(columns, n_components=N_COMPONENTS):
+def create_svd_tfidf_features(columns, n_components=N_COMPONENTS, pref=''):
 
     logging.info('Creating svd tfidf features.')
-    feature_class = 'svd_tfidf'
+    feature_class = pref + 'svd_tfidf'
     if check_if_exists(feature_class):
         logging.info('SVD tfidf features already created.')
         return
@@ -103,7 +103,7 @@ def create_svd_tfidf_features(columns, n_components=N_COMPONENTS):
     svd = TruncatedSVD(n_components=n_components, n_iter=15)
 
     for c in columns:
-        X = load_features('raw_tfidf_%s' % c)
+        X = load_features('%sraw_tfidf_%s' % (pref, c))
         X_transformed = svd.fit_transform(X)
         svd_columns = ['tfidf_svd_' + c + '_' + str(i) for i in range(n_components)]
         data.append(pd.DataFrame(X_transformed, columns=svd_columns))
@@ -116,17 +116,18 @@ def create_svd_tfidf_features(columns, n_components=N_COMPONENTS):
     logging.info('Svd tfidf features are created.')
 
 
-def create_common_vocabulary_svd_tfidf_features(n_components=2*N_COMPONENTS):
+def create_common_vocabulary_svd_tfidf_features(n_components=2*N_COMPONENTS,
+                                                pref=''):
 
     logging.info('Creating common vocabulary svd tfidf features.')
-    feature_class = 'common_vocabulary_svd_tfidf'
+    feature_class = pref + 'common_vocabulary_svd_tfidf'
     if check_if_exists(feature_class):
         logging.info('Common Vocabulary SVD tfidf features already created.')
         return
 
     svd = TruncatedSVD(n_components=n_components, n_iter=15)
 
-    X = load_features('common_vocabulary_raw_tfidf')
+    X = load_features(pref + 'common_vocabulary_raw_tfidf')
     X_transformed = svd.fit_transform(X)
     svd_columns = ['common_vocabulary_tfidf_svd_' + str(i) for i in range(n_components)]
     data = pd.DataFrame(X_transformed, columns=svd_columns)
@@ -138,16 +139,16 @@ def create_common_vocabulary_svd_tfidf_features(n_components=2*N_COMPONENTS):
     logging.info('Common vocabulary SVD tfidf features are created.')
 
 
-def create_distance_tfidf_features(col1, col2):
+def create_distance_tfidf_features(col1, col2, pref=''):
 
     logging.info('Creating distance tfidf features.')
-    feature_class = 'distance_tfidf'
+    feature_class = pref + 'distance_tfidf'
     if check_if_exists(feature_class):
         logging.info('Distance tfidf features already created.')
         return
 
-    X_col1 = load_features('common_vocabulary_raw_tfidf_%s' % col1)
-    X_col2 = load_features('common_vocabulary_raw_tfidf_%s' % col2)
+    X_col1 = load_features('%scommon_vocabulary_raw_tfidf_%s' % (pref, col1))
+    X_col2 = load_features('%scommon_vocabulary_raw_tfidf_%s' % (pref, col2))
 
     res = pd.DataFrame()
     res['cosine_similarity_%s_%s' % (col1, col2)] = (

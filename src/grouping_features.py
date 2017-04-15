@@ -6,19 +6,21 @@ from feature_classification import add_features
 import np_utils
 
 
-def create_grouping_features(df_all):
+def create_grouping_features(df_all, pref=''):
 
     logging.info('Creating grouping features.')
-    feature_class = 'grouping'
+    feature_class = pref + 'grouping'
     if check_if_exists(feature_class):
         logging.info('Grouping features already created.')
         return
 
     columns = ['distance1', 'distance2', 'absdistance1', 'absdistance2']
-    common_words = load_features('common_words')[columns].reset_index(drop=True)
-    distance_tfidf_features = load_features('distance_tfidf').reset_index(drop=True)
+    common_words = (
+        load_features(pref + 'common_words')[columns].reset_index(drop=True))
+    distance_tfidf_features = (
+        load_features(pref + 'distance_tfidf').reset_index(drop=True))
     columns += distance_tfidf_features.columns.tolist()
-    word2vec_features = load_features('word2vec').reset_index(drop=True)
+    word2vec_features = load_features(pref + 'word2vec').reset_index(drop=True)
     columns += word2vec_features.columns.tolist()
 
     df_q1_q2 = pd.concat([common_words,

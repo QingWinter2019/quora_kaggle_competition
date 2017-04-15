@@ -98,10 +98,10 @@ class Word2VecModel:
         return self.model[key]
 
 
-def create_word2vec_features(data, col1, col2):
+def create_word2vec_features(data, col1, col2, pref=''):
 
     logging.info('Creating Word2Vec features.')
-    feature_class = 'word2vec'
+    feature_class = pref + 'word2vec'
     if check_if_exists(feature_class):
         logging.info('Word2Vec features are already created.')
         return

@@ -43,7 +43,7 @@ TEST_NROWS = CONFIG['TEST_NROWS']
 TRAIN_NROWS = CONFIG['TRAIN_NROWS']
 
 # Turn off/on parameters tuning and cross validation.
-TUNE_PARAMETERS = True
+TUNE_PARAMETERS = False
 DO_CROSS_VALIDATION = True
 
 
@@ -114,13 +114,24 @@ def modelling():
     estimators = get_classifiers(names)
     par_grids = get_param_grids(names)
     lr_class_features = [
+        ['stemma_common_words', 'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf', 'stemma_word2vec',
+         'stemma_raw_tfidf_question1', 'stemma_raw_tfidf_question2'],
+        ['stemma_common_words', 'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf', 'stemma_word2vec',
+         'stemma_common_vocabulary_raw_tfidf_question1',
+         'stemma_common_vocabulary_raw_tfidf_question2'],
         ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
          'raw_tfidf_question1', 'raw_tfidf_question2'],
         ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
          'common_vocabulary_raw_tfidf_question1',
-         'common_vocabulary_raw_tfidf_question2']
+         'common_vocabulary_raw_tfidf_question2'],
+        ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
+         'raw_tfidf_question1', 'raw_tfidf_question2',
+         'stemma_common_words', 'stemma_grouping', 'stemma_tfidf',
+         'stemma_distance_tfidf', 'stemma_word2vec'
+         ]
     ]
-    class_feature_names = ['regular', 'common']
+    class_feature_names = ['regular', 'common', 'stemma_regular',
+                           'stemma_common', 'standard_stemma__mix']
     generate_predictions(estimators, names, par_grids, lr_class_features,
                          class_feature_names, test_ids, y_train, sparse=True)
 
@@ -132,8 +143,17 @@ def modelling():
         ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
          'svd_tfidf'],
         ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
-         'common_vocabulary_svd_tfidf']
+         'common_vocabulary_svd_tfidf'],
+        ['stemma_common_words', 'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf', 'stemma_word2vec',
+         'stemma_svd_tfidf'],
+        ['stemma_common_words', 'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf', 'stemma_word2vec',
+         'stemma_common_vocabulary_svd_tfidf'],
+        ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
+         'common_vocabulary_svd_tfidf',
+         'stemma_common_words', 'stemma_grouping', 'stemma_tfidf',
+         'stemma_distance_tfidf', 'stemma_word2vec'
         ]
+    ]
     generate_predictions(estimators, names, par_grids, xgb_class_features,
                          class_feature_names, test_ids, y_train)
 
