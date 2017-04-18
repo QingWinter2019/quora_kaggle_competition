@@ -3,12 +3,13 @@ import os
 import pandas as pd
 import pickle
 import scipy.sparse as sp
-from sklearn.preprocessing import normalize
+from sklearn.preprocessing import normalize, StandardScaler
 
 from globals import CONFIG
 
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
+METAFEATURES_DIR = os.path.join(PICKLE_DIR, CONFIG['METAFEATURES_DIR'])
 
 
 def load_X(feature_classes, train_size, sparse=False, norm=True):
@@ -20,7 +21,8 @@ def load_X(feature_classes, train_size, sparse=False, norm=True):
         data = [sp.csr_matrix(features) for features in data]
         res = sp.hstack(data)
         if norm:
-            res = normalize(res, norm='l1', axis=1)
+            scaler = StandardScaler(with_mean=False)
+            res = scaler.fit_transform(res)
     else:
         for df in data:
             df.reset_index(inplace=True, drop=True)
@@ -44,6 +46,15 @@ def dump_features(feature_class, data):
     pickle_file = os.path.join(PICKLE_DIR, '%s_features.pickle' % feature_class)
     with open(pickle_file, 'wb') as file:
         pickle.dump(data, file, pickle.HIGHEST_PROTOCOL)
+
+
+def dump_metafeatures(metafeatures, filename):
+
+    if not os.path.exists(METAFEATURES_DIR):
+        os.makedirs(METAFEATURES_DIR)
+
+    with open(os.path.join(METAFEATURES_DIR, filename + '.pickle'), 'wb') as file:
+        pickle.dump(metafeatures, file, pickle.HIGHEST_PROTOCOL)
 
 
 def check_if_exists(feature_class):

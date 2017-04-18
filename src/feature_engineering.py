@@ -21,13 +21,16 @@ import re
 from feature_classification import add_features, dump_feature_classes_and_dict
 from globals import CONFIG
 from pickle_utils import dump_features, check_if_exists
+from preprocessing import load_preprocessed_data
 
 from tfidf_features import create_tfidf_features
-from tfidf_svd_features import create_svd_tfidf_features, create_raw_tfidf_features
+from tfidf_svd_features import create_svd_tfidf_features
+from tfidf_svd_features import create_raw_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_svd_tfidf_features
 from tfidf_svd_features import create_common_vocabulary_raw_tfidf_features
 from tfidf_svd_features import create_distance_tfidf_features
 from grouping_features import create_grouping_features
+from word2vec_features import create_word2vec_features
 
 
 # Global directories.
@@ -53,31 +56,35 @@ def create_words(str_, regex=r'\W+'):
 def feature_engineering():
 
     logging.info('FEATURE ENGINEERING')
-    # Read data.
-    df_train = pd.read_csv(TRAIN_FILE, nrows=TRAIN_NROWS)
-    df_test = pd.read_csv(TEST_FILE, nrows=TEST_NROWS)
-    df_test.rename(columns={'test_id': 'id'}, inplace=True)
 
-    # Merge data together.
-    wanted_cols = ['id', 'question1', 'question2']
-    data = pd.concat([df_train[wanted_cols + ['is_duplicate']],
-                      df_test[wanted_cols]], ignore_index=True)
-
-    # Preprocess data.
-    data['question1'] = data['question1'].apply(lambda x: str(x))
-    data['question2'] = data['question2'].apply(lambda x: str(x))
-    data['words1'] = data['question1'].apply(lambda x: create_words(x))
-    data['words2'] = data['question2'].apply(lambda x: create_words(x))
-
-    # Create features.
+    # Create standard features.
+    data = load_preprocessed_data('standard_preprocess')
     create_common_words_count_features(data)
-    create_tfidf_features(data, columns=['question2'], qcol='question1', unique=False)
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False)
     create_raw_tfidf_features(data, columns=['question1', 'question2'])
     create_svd_tfidf_features(columns=['question1', 'question2'])
     create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2')
     create_common_vocabulary_svd_tfidf_features()
     create_distance_tfidf_features('question1', 'question2')
+    create_word2vec_features(data, 'words1', 'words2')
     create_grouping_features(data)
+
+    # Create stemma features.
+    data = load_preprocessed_data('stemma_preprocess')
+    create_common_words_count_features(data, pref='stemma_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False, pref='stemma_')
+    create_raw_tfidf_features(data, columns=['question1', 'question2'],
+                              pref='stemma_')
+    create_svd_tfidf_features(columns=['question1', 'question2'],
+                              pref='stemma_')
+    create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2',
+                                                pref='stemma_')
+    create_common_vocabulary_svd_tfidf_features(pref='stemma_')
+    create_distance_tfidf_features('question1', 'question2', pref='stemma_')
+    create_word2vec_features(data, 'words1', 'words2', pref='stemma_')
+    create_grouping_features(data, pref='stemma_')
 
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
@@ -111,10 +118,10 @@ def union_words_len(words1, words2):
     return words_len(set1.union(set2))
 
 
-def create_common_words_count_features(data):
+def create_common_words_count_features(data, pref=''):
 
     logging.info('Creating common words features')
-    feature_class = 'common_words'
+    feature_class = pref + 'common_words'
     if check_if_exists(feature_class):
         logging.info('Common words features already created')
         return
@@ -136,7 +143,8 @@ def create_common_words_count_features(data):
     res['abs_lenunion'] = data.apply(
         lambda x: union_words_len(x['words1'], x['words2']), axis=1)
     res['absdistance1'] = res['common_words_len'] / res['abs_lenunion']
-    res['absdistance2'] = res['common_words_len'] / (res['abs_len1'] + res['abs_len2'])
+    res['absdistance2'] = res['common_words_len'] / (res['abs_len1'] +
+                                                     res['abs_len2'])
 
     features = res.columns.tolist()
     add_features(feature_class, features)

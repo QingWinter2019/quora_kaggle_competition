@@ -13,68 +13,32 @@ __author__
 """
 
 from sklearn.cross_validation import StratifiedKFold, KFold
+from sklearn.cross_validation import StratifiedShuffleSplit
 import random
 
 from globals import CONFIG
 
-# Global CV.
-CV = []
+# Global cv parameters.
+N_FOLDS = 2
+VAL_SIZE = 0.2
 
 
-def get_cv(y):
+def get_cv(y, n_folds=N_FOLDS, type='split'):
     '''
     :param
     :return:
     '''
 
-    global CV
+    random.seed(CONFIG['RANDOM_SEED'])
 
-    if not CV:
-
-        random.seed(CONFIG['RANDOM_SEED'])
-        rs = [random.randrange(0, CONFIG['MAX_RANDOM_SEED']) for i in range(CONFIG['REPETITION_NUM'])]
-
-        if CONFIG['CV_TYPE'] == 'KFOLD':
-            CV = myKFold(len(y), CONFIG['FOLDS_NUM'], rseeds=rs)
-        else:  # STRATIFIED
-            CV = myStratifiedKFold(y, CONFIG['FOLDS_NUM'], rseeds=rs)
-
-    return CV
-
-
-def myStratifiedKFold(y, n_folds, shuffle=True, rseeds=[1]):
-    """
-    :param y:
-    :param n_folds:
-    :param n_rep:
-    :param rs:
-    :return:
-    """
-
-    cv = []
-    for rs in rseeds:
-        stratified_cv = StratifiedKFold(y,
-                                        n_folds=n_folds,
-                                        shuffle=shuffle,
-                                        random_state=rs)
-        for train_ind, test_ind in stratified_cv:
-            cv.append([train_ind, test_ind])
-
-    return cv
-
-
-def myKFold(n, n_folds, shuffle=True, rseeds=[1]):
-    """
-    :param n: Total number of elements
-    :param n_folds: Number of folds
-    :param rs: When shuffle=True, pseudo-random generator state used for shuffling
-    :return:
-    """
-
-    cv = []
-    for rs in rseeds:
-        kfold_cv = KFold(n=n, n_folds=n_folds, shuffle=shuffle, random_state=rs)
-        for train_ind, test_ind in kfold_cv:
-            cv.append([train_ind, test_ind])
+    if type == 'split':
+        cv = StratifiedShuffleSplit(y, n_iter=n_folds, test_size=VAL_SIZE,
+                                    train_size=None,
+                                    random_state=CONFIG['RANDOM_SEED'])
+    elif type == 'kfold':
+        cv = StratifiedKFold(y, n_folds=n_folds, shuffle=True,
+                             random_state=CONFIG['RANDOM_SEED'])
+    else:
+        raise ValueError('Unknown cv type!')
 
     return cv
