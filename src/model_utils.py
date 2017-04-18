@@ -3,10 +3,12 @@ import numpy as np
 import math
 from sklearn.grid_search import ParameterGrid
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import ExtraTreesClassifier
 import xgboost as xgb
 from xgboost import XGBClassifier
 
 from pickle_utils import dump_metafeatures
+from globals import CONFIG
 
 # Parameters for Xgboost
 EARLY_STOPPING_ROUNDS = 100
@@ -28,8 +30,8 @@ def score(y_true, y_pred, eps=1.e-15):
     return -np.mean(res)
 
 
-def rescale_preds(y):
-    return A * y / (A * y + B * (1 - y))
+def rescale_preds(y, a=A, b=B):
+    return a * y / (a * y + b * (1 - y))
 
 
 def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
@@ -39,7 +41,7 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
     mean_score = None
     opt_n_estimators = None
     if filename is not None:
-        metafeatures = np.zeros((len(y), len(cv)))
+        metafeatures = np.zeros((len(y), 1))
 
     for i, (train_ind, test_ind) in enumerate(cv):
 
@@ -70,7 +72,7 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
 
         # Metafeatures!
         if filename is not None:
-            metafeatures[test_ind, i] = y_test_pred
+            metafeatures[test_ind, :] = np.reshape(y_test_pred, (len(test_ind), 1))
 
         # Calculate scores.
         train_score = score(y_train, y_train_pred)
@@ -132,7 +134,8 @@ def get_classifiers(names):
     classifiers = []
     for name in names:
         if name == 'LogisticRegression':
-            clf = LogisticRegression(penalty='l1', C=0.007)
+            clf = LogisticRegression(penalty='l1', C=0.007,
+                                     random_state=CONFIG['RANDOM_SEED'])
         elif name == 'XGBClassifier':
             clf = XGBClassifier(base_score=0.5,
                                 colsample_bylevel=1,
@@ -149,9 +152,17 @@ def get_classifiers(names):
                                 reg_alpha=0,
                                 reg_lambda=1,
                                 scale_pos_weight=1,
-                                seed=2016,
+                                seed=CONFIG['RANDOM_SEED'],
                                 silent=True,
                                 subsample=0.9)
+        elif name == 'ExtraTreesClassifier':
+            clf = ExtraTreesClassifier(n_estimators=50,
+                                       max_depth=None,
+                                       min_samples_split=10,
+                                       min_samples_leaf=5,
+                                       max_features='auto',
+                                       n_jobs=-1,
+                                       random_state=CONFIG['RANDOM_SEED'])
         else:
             raise ValueError('Unknown classifier name.')
 
@@ -169,6 +180,28 @@ def get_param_grids(names):
                           'penalty': ['l1', 'l2']}
         elif name == 'XGBClassifier':
             param_grid = {'max_depth': [6, 9]}
+        elif name == 'ExtraTreesClassifier':
+            param_grid = {'max_features': ['auto', 0.5, 0.9, 1.0]}
+        else:
+            raise ValueError('Unknown classifier name.')
+
+        param_grids.append(param_grid)
+
+    return param_grids
+
+
+def get_stacking_param_grids(names):
+
+    param_grids = []
+    for name in names:
+        if name == 'LogisticRegression':
+            param_grid = {'C': [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000],
+                          'penalty': ['l1', 'l2'],
+                          'fit_intercept': [True]}
+        elif name == 'XGBClassifier':
+            param_grid = {'max_depth': [6, 9]}
+        elif name == 'ExtraTreesClassifier':
+            param_grid = {'max_features': ['auto', 0.5, 0.9, 1.0]}
         else:
             raise ValueError('Unknown classifier name.')
 
