@@ -19,6 +19,7 @@ import pandas as pd
 import pickle
 import re
 from nltk.stem.snowball import PorterStemmer
+from nltk.corpus import stopwords
 
 from globals import CONFIG
 
@@ -36,6 +37,11 @@ TEST_FILE = os.path.join(DATA_DIR, 'test.csv')
 TEST_NROWS = CONFIG['TEST_NROWS']
 TRAIN_NROWS = CONFIG['TRAIN_NROWS']
 
+
+# Stopwords.
+stop_words = set(stopwords.words('english'))
+stop_words.update(['possible', 'list'])
+# stop_words.update()
 
 def save_preprocessed_data(data, name):
 
@@ -102,6 +108,27 @@ def preprocess_data():
 
         # Stemmatize words.
         stemmer = PorterStemmer(ignore_stopwords=False)
+        data_preprocessed['words1'] = data_preprocessed['words1'].apply(
+            lambda x: [stemmer.stem(word) for word in x])
+        data_preprocessed['words2'] = data_preprocessed['words2'].apply(
+            lambda x: [stemmer.stem(word) for word in x])
+        data_preprocessed['question1'] = data_preprocessed['words1'].apply(
+            lambda x: ' '.join(x))
+        data_preprocessed['question2'] = data_preprocessed['words2'].apply(
+            lambda x: ' '.join(x))
+        save_preprocessed_data(data_preprocessed, name)
+
+    name = 'stemma_preprocess_stopwords'
+    if not check_if_preprocessed_data_exists(name):
+        # Load standard preprocessed data.
+        data_preprocessed = load_preprocessed_data('standard_preprocess')
+
+        # Stemmatize words.
+        stemmer = PorterStemmer(ignore_stopwords=False)
+        data_preprocessed['words1'] = data_preprocessed['words1'].apply(
+            lambda x: [word for word in x if not word in stop_words])
+        data_preprocessed['words2'] = data_preprocessed['words2'].apply(
+            lambda x: [word for word in x if not word in stop_words])
         data_preprocessed['words1'] = data_preprocessed['words1'].apply(
             lambda x: [stemmer.stem(word) for word in x])
         data_preprocessed['words2'] = data_preprocessed['words2'].apply(

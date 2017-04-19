@@ -86,6 +86,22 @@ def feature_engineering():
     create_word2vec_features(data, 'words1', 'words2', pref='stemma_')
     create_grouping_features(data, pref='stemma_')
 
+    # Create stemma stopwords features.
+    data = load_preprocessed_data('stemma_preprocess_stopwords')
+    create_common_words_count_features(data, pref='stemma_stopwords_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False, pref='stemma_stopwords_')
+    create_raw_tfidf_features(data, columns=['question1', 'question2'],
+                              pref='stemma_stopwords_')
+    create_svd_tfidf_features(columns=['question1', 'question2'],
+                              pref='stemma_stopwords_')
+    create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2',
+                                                pref='stemma_stopwords_')
+    create_common_vocabulary_svd_tfidf_features(pref='stemma_stopwords_')
+    create_distance_tfidf_features('question1', 'question2', pref='stemma_stopwords_')
+    create_word2vec_features(data, 'words1', 'words2', pref='stemma_stopwords_')
+    create_grouping_features(data, pref='stemma_stopwords_')
+
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
 
