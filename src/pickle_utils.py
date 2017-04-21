@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import os
 import pandas as pd
 import pickle
@@ -26,7 +27,7 @@ def load_X(feature_classes, train_size, sparse=False, norm=True):
     else:
         for df in data:
             df.reset_index(inplace=True, drop=True)
-        res = pd.concat(data, axis=1, ignore_index=True).values
+        res = np.concatenate([df.values for df in data], axis=1)
 
     logging.info('Features are loaded.')
     return res[:train_size], res[train_size:]
