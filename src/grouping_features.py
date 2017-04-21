@@ -17,11 +17,19 @@ def create_grouping_features(df_all, pref=''):
     columns = ['distance1', 'distance2', 'absdistance1', 'absdistance2']
     common_words = (
         load_features(pref + 'common_words')[columns].reset_index(drop=True))
-    distance_tfidf_features = (
-        load_features(pref + 'distance_tfidf').reset_index(drop=True))
-    columns += distance_tfidf_features.columns.tolist()
-    word2vec_features = load_features(pref + 'word2vec').reset_index(drop=True)
-    columns += word2vec_features.columns.tolist()
+
+    if check_if_exists(pref + 'distance_tfidf'):
+        distance_tfidf_features = (
+            load_features(pref + 'distance_tfidf').reset_index(drop=True))
+        columns += distance_tfidf_features.columns.tolist()
+    else:
+        distance_tfidf_features = pd.DataFrame()
+
+    if check_if_exists(pref + 'word2vec'):
+        word2vec_features = load_features(pref + 'word2vec').reset_index(drop=True)
+        columns += word2vec_features.columns.tolist()
+    else:
+        word2vec_features = pd.DataFrame()
 
     df_q1_q2 = pd.concat([common_words,
                           distance_tfidf_features,

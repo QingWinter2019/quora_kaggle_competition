@@ -148,17 +148,24 @@ def modelling():
       #  'stemma_svd_tfidf'],
       # ['stemma_common_words', 'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf', 'stemma_word2vec',
       #   'stemma_common_vocabulary_svd_tfidf'],
-      ['stemma_stopwords_common_words', 'stemma_stopwords_grouping', 'stemma_stopwords_tfidf', 'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec',
-       'stemma_stopwords_svd_tfidf'],
-      ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
-         'common_vocabulary_svd_tfidf',
-         'stemma_common_words', 'stemma_grouping', 'stemma_tfidf',
-         'stemma_distance_tfidf', 'stemma_word2vec',
-      'stemma_stopwords_common_words', 'stemma_stopwords_grouping', 'stemma_stopwords_tfidf', 'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
+#      ['stemma_stopwords_common_words', 'stemma_stopwords_grouping', 'stemma_stopwords_tfidf', 'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec',
+#        'stemma_stopwords_svd_tfidf'],
+#      ['common_words', 'grouping', 'tfidf', 'distance_tfidf', 'word2vec',
+#         'common_vocabulary_svd_tfidf',
+#         'stemma_common_words', 'stemma_grouping', 'stemma_tfidf',
+#         'stemma_distance_tfidf', 'stemma_word2vec',
+#      'stemma_stopwords_common_words', 'stemma_stopwords_grouping', 'stemma_stopwords_tfidf', 'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
+#        ]
+    ['dl_common_words', 'dl_tfidf', 'dl_grouping', 'common_words', 'grouping',
+     'tfidf', 'distance_tfidf', 'word2vec', 'svd_tfidf', 'stemma_common_words',
+     'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf',
+     'stemma_word2vec', 'stemma_stopwords_common_words',
+     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
+     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
         ]
     ]
-    class_feature_names = ['stemma_stopwords_regular', 'standard_stemma_stopwords_mix']
-
+    # class_feature_names = ['stemma_stopwords_regular', 'standard_stemma_stopwords_mix']
+    class_feature_names = ['damerau_levenstein']
     generate_predictions(estimators, names, par_grids, xgb_class_features,
                          class_feature_names, test_ids, y_train)
 

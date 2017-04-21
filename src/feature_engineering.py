@@ -102,6 +102,14 @@ def feature_engineering():
     create_word2vec_features(data, 'words1', 'words2', pref='stemma_stopwords_')
     create_grouping_features(data, pref='stemma_stopwords_')
 
+    # Create Damerau Levenshtein features.
+    # For now we create not all features to see if there is at all benefit.
+    data = load_preprocessed_data('dl_preprocess')
+    create_common_words_count_features(data, pref='dl_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False, pref='dl_')
+    create_grouping_features(data, pref='dl_')
+
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
 
