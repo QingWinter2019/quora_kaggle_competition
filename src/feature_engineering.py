@@ -110,6 +110,18 @@ def feature_engineering():
                           unique=False, pref='dl_')
     create_grouping_features(data, pref='dl_')
 
+    # Create Concat features.
+    # For now we create only common_words_count and grouping features.
+    data = load_preprocessed_data('concat_preprocess')
+    create_common_words_count_features(data, pref='concat_')
+    create_grouping_features(data, pref='concat_')
+
+    # Create Noun features.
+    # For now we create only common_words_count and grouping features.
+    data = load_preprocessed_data('noun_preprocess')
+    create_common_words_count_features(data, pref='noun_')
+    create_grouping_features(data, pref='noun_')
+
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
 

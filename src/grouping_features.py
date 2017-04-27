@@ -11,7 +11,8 @@ def create_grouping_features(df_all, pref=''):
     logging.info('Creating grouping features.')
     feature_class = pref + 'grouping'
     if check_if_exists(feature_class):
-        logging.info('Grouping features already created.')
+        logging.info('Grouping features (%s) already created.' %
+                     feature_class)
         return
 
     columns = ['distance1', 'distance2', 'absdistance1', 'absdistance2']
