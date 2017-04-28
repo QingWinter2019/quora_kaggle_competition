@@ -31,7 +31,7 @@ from tfidf_svd_features import create_common_vocabulary_raw_tfidf_features
 from tfidf_svd_features import create_distance_tfidf_features
 from grouping_features import create_grouping_features
 from word2vec_features import create_word2vec_features
-
+from logistic_features import create_logistic_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -121,6 +121,9 @@ def feature_engineering():
     data = load_preprocessed_data('noun_preprocess')
     create_common_words_count_features(data, pref='noun_')
     create_grouping_features(data, pref='noun_')
+
+    # Metafeatures.
+    create_logistic_features()
 
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
