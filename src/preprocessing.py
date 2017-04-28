@@ -105,8 +105,6 @@ def find_last_question(str_):
         return ''
     for sentence in reversed(sentences):
         if sentence.endswith('?'):
-            if len(sentences) > 1:
-                logging.debug(sentence)
             return sentence
     # If no question is found.
     return ''
@@ -296,6 +294,33 @@ def preprocess_data():
             lambda x: concat_preprocess_words(x['words1'], x['words2']), axis=1)
         data_preprocessed['words2'] = data_preprocessed.apply(
             lambda x: concat_preprocess_words(x['words2'], x['words1']), axis=1)
+
+        save_preprocessed_data(data_preprocessed, name)
+
+    name = 'clean_concat'
+    if not check_if_preprocessed_data_exists(name):
+        logging.info('Doing concat preprocessing.')
+        data_preprocessed = pd.DataFrame(data['id'])
+        data_preprocessed['question1'] = data['question1'].apply(
+            lambda x: str(x))
+        data_preprocessed['question2'] = data['question2'].apply(
+            lambda x: str(x))
+        data_preprocessed['words1'] = data_preprocessed['question1'].apply(
+            lambda x: create_words(x))
+        data_preprocessed['words2'] = data_preprocessed['question2'].apply(
+            lambda x: create_words(x))
+        data_preprocessed['words1'] = data_preprocessed.apply(
+            lambda x: concat_preprocess_words(x['words1'], x['words2']), axis=1)
+        data_preprocessed['words2'] = data_preprocessed.apply(
+            lambda x: concat_preprocess_words(x['words2'], x['words1']), axis=1)
+        data_preprocessed['words1'] = data_preprocessed['words1'].apply(
+            lambda x: [word for word in x if word not in stop_words])
+        data_preprocessed['words2'] = data_preprocessed['words2'].apply(
+            lambda x: [word for word in x if word not in stop_words])
+        data_preprocessed['question1'] = data_preprocessed['words1'].apply(
+            lambda x: ' '.join(x))
+        data_preprocessed['question2'] = data_preprocessed['words2'].apply(
+            lambda x: ' '.join(x))
 
         save_preprocessed_data(data_preprocessed, name)
 

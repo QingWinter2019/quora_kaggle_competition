@@ -125,6 +125,21 @@ def feature_engineering():
     # Metafeatures.
     create_logistic_features()
 
+    # Create clean_concat features.
+    data = load_preprocessed_data('clean_concat')
+    create_common_words_count_features(data, pref='clean_concat_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False, pref='clean_concat_')
+    create_raw_tfidf_features(data, columns=['question1', 'question2'],
+                              pref='clean_concat_')
+    create_svd_tfidf_features(columns=['question1', 'question2'],
+                              pref='clean_concat_')
+    create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2',
+                                                pref='clean_concat_')
+    create_common_vocabulary_svd_tfidf_features(pref='clean_concat_')
+    create_distance_tfidf_features('question1', 'question2', pref='clean_concat_')
+    create_grouping_features(data, pref='clean_concat_')
+
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
 
