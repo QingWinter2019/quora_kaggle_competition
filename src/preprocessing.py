@@ -24,6 +24,7 @@ from nltk.corpus import stopwords
 from jellyfish import damerau_levenshtein_distance
 
 from globals import CONFIG
+from ngram import get_bigram
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -351,18 +352,36 @@ def preprocess_data():
 
         save_preprocessed_data(data_preprocessed, name)
 
-    name = 'last_question_preprocess'
+    name = 'bigram'
     if not check_if_preprocessed_data_exists(name):
-        logging.info('Doing last question preprocessing.')
-        data_preprocessed = pd.DataFrame(data['id'])
-        data_preprocessed['question1'] = data['question1'].apply(
-            lambda x: str(x))
-        data_preprocessed['question2'] = data['question2'].apply(
-            lambda x: str(x))
-        data_preprocessed['question1'] = data['question1'].apply(
-            lambda x: find_last_question(x))
-        data_preprocessed['question2'] = data['question2'].apply(
-            lambda x: find_last_question(x))
+        logging.info('Doing bigram preprocessing.')
+        data_preprocessed = load_preprocessed_data('clean_concat')
+
+        stemmer = PorterStemmer(ignore_stopwords=False)
+        data_preprocessed['words1'] = data_preprocessed['words1'].apply(
+            lambda x: [stemmer.stem(word) for word in x])
+        data_preprocessed['words2'] = data_preprocessed['words2'].apply(
+            lambda x: [stemmer.stem(word) for word in x])
+
+        data_preprocessed['words1'] = data_preprocessed['words1'].apply(
+            lambda x: get_bigram(x))
+        data_preprocessed['words2'] = data_preprocessed['words2'].apply(
+            lambda x: get_bigram(x))
+
+        save_preprocessed_data(data_preprocessed, name)
+
+#    name = 'last_question_preprocess'
+#    if not check_if_preprocessed_data_exists(name):
+#        logging.info('Doing last question preprocessing.')
+#        data_preprocessed = pd.DataFrame(data['id'])
+#        data_preprocessed['question1'] = data['question1'].apply(
+#            lambda x: str(x))
+#        data_preprocessed['question2'] = data['question2'].apply(
+#            lambda x: str(x))
+#        data_preprocessed['question1'] = data['question1'].apply(
+#            lambda x: find_last_question(x))
+#        data_preprocessed['question2'] = data['question2'].apply(
+#            lambda x: find_last_question(x))
 
     logging.info('DATA PREPROCESSED')
 
