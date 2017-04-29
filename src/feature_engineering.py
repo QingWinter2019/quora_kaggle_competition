@@ -140,6 +140,13 @@ def feature_engineering():
     create_distance_tfidf_features('question1', 'question2', pref='clean_concat_')
     create_grouping_features(data, pref='clean_concat_')
 
+    # Create bigram features.
+    data = load_preprocessed_data('bigram')
+    create_common_words_count_features(data, pref='bigram_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=True, pref='bigram_')
+    create_grouping_features(data, pref='bigram_')
+
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
 
