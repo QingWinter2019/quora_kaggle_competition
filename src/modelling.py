@@ -181,7 +181,16 @@ def modelling():
 #      ['clean_concat_common_words', 'clean_concat_grouping',
 #       'clean_concat_tfidf', 'clean_concat_distance_tfidf',
 #       'clean_concat_svd_tfidf']
-    ['bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
+#    ['bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
+#     'noun_common_words', 'noun_grouping', 'clean_concat_common_words',
+#     'clean_concat_grouping', 'common_words', 'grouping',
+#     'tfidf', 'distance_tfidf', 'word2vec', 'logistic', 'stemma_common_words',
+#     'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf',
+#     'stemma_word2vec', 'stemma_stopwords_common_words',
+#     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
+#     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
+#     ]
+    ['specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
      'noun_common_words', 'noun_grouping', 'clean_concat_common_words',
      'clean_concat_grouping', 'common_words', 'grouping',
      'tfidf', 'distance_tfidf', 'word2vec', 'logistic', 'stemma_common_words',
@@ -198,6 +207,7 @@ def modelling():
     class_feature_names = ['logistic']
     class_feature_names = ['clean_concat']
     class_feature_names = ['bigram_mix']
+    class_feature_names = ['specific_words']
     generate_predictions(estimators, names, par_grids, xgb_class_features,
                          class_feature_names, test_ids, y_train)
 

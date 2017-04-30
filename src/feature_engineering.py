@@ -32,6 +32,7 @@ from tfidf_svd_features import create_distance_tfidf_features
 from grouping_features import create_grouping_features
 from word2vec_features import create_word2vec_features
 from logistic_features import create_logistic_features
+from specific_word_counts_features import create_specific_word_counts
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -124,6 +125,10 @@ def feature_engineering():
 
     # Metafeatures.
     create_logistic_features()
+
+    # Specific word counts. Generic for all type of preprocessing.
+    data = load_preprocessed_data('standard_preprocess')
+    create_specific_word_counts(data)
 
     # Create clean_concat features.
     data = load_preprocessed_data('clean_concat')
