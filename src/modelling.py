@@ -58,7 +58,8 @@ def save_predictions(preds, name):
 
 
 def generate_predictions(estimators, names, par_grids, class_features,
-                         class_feature_names, test_ids, y_train, sparse=False):
+                         class_feature_names, test_ids, y_train, sparse=False,
+                         norm=True):
 
     preds = test_ids.copy()
 
@@ -72,7 +73,8 @@ def generate_predictions(estimators, names, par_grids, class_features,
     for (class_feature, features_name) in zip(class_features, class_feature_names):
 
         logging.info('Reading data from files.')
-        X_train, X_test = load_X(class_feature, len(y_train), sparse=sparse)
+        X_train, X_test = load_X(class_feature, len(y_train), sparse=sparse,
+                                 norm=norm)
         logging.info('Shape of X_train: %s' % str(X_train.shape))
         logging.info('Data was succesfully read')
 
@@ -190,9 +192,18 @@ def modelling():
 #     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
 #     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
 #     ]
-    ['specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
-     'noun_common_words', 'noun_grouping', 'clean_concat_common_words',
-     'clean_concat_grouping', 'common_words', 'grouping',
+#    ['specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
+#     'noun_common_words', 'noun_grouping', 'clean_concat_common_words',
+#     'clean_concat_grouping', 'common_words', 'grouping',
+#     'tfidf', 'distance_tfidf', 'word2vec', 'logistic', 'stemma_common_words',
+#     'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf',
+#     'stemma_word2vec', 'stemma_stopwords_common_words',
+#     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
+#     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
+#     ]
+    ['super_clean_concat_most_common_words', 'specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
+     'noun_common_words', 'noun_grouping', 'super_clean_concat_common_words',
+     'super_clean_concat_grouping', 'clean_concat_tfidf', 'common_words', 'grouping',
      'tfidf', 'distance_tfidf', 'word2vec', 'logistic', 'stemma_common_words',
      'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf',
      'stemma_word2vec', 'stemma_stopwords_common_words',
@@ -208,8 +219,10 @@ def modelling():
     class_feature_names = ['clean_concat']
     class_feature_names = ['bigram_mix']
     class_feature_names = ['specific_words']
+    class_feature_names = ['most_common_words']
     generate_predictions(estimators, names, par_grids, xgb_class_features,
-                         class_feature_names, test_ids, y_train)
+                         class_feature_names, test_ids, y_train, sparse=True,
+                         norm=False)
 
     logging.info('FINISHED MODELLING.')
 
