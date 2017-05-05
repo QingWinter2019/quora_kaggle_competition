@@ -20,7 +20,7 @@ def load_X(feature_classes, train_size, sparse=False, norm=True):
 
     if sparse:
         data = [sp.csr_matrix(features) for features in data]
-        res = sp.hstack(data)
+        res = sp.hstack(data, format='csr')
         if norm:
             scaler = StandardScaler(with_mean=False)
             res = scaler.fit_transform(res)

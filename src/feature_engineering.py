@@ -33,6 +33,7 @@ from grouping_features import create_grouping_features
 from word2vec_features import create_word2vec_features
 from logistic_features import create_logistic_features
 from specific_word_counts_features import create_specific_word_counts
+from most_common_words import create_most_common_words_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -144,6 +145,23 @@ def feature_engineering():
     create_common_vocabulary_svd_tfidf_features(pref='clean_concat_')
     create_distance_tfidf_features('question1', 'question2', pref='clean_concat_')
     create_grouping_features(data, pref='clean_concat_')
+    create_most_common_words_features(data, 'question1', 'question2', pref='clean_concat_')
+
+    # Create super clean_concat features.
+    data = load_preprocessed_data('super_clean_concat')
+    create_common_words_count_features(data, pref='super_clean_concat_')
+    create_tfidf_features(data, columns=['question2'], qcol='question1',
+                          unique=False, pref='super_clean_concat_')
+    create_raw_tfidf_features(data, columns=['question1', 'question2'],
+                              pref='super_clean_concat_')
+    create_svd_tfidf_features(columns=['question1', 'question2'],
+                              pref='super_clean_concat_')
+    create_common_vocabulary_raw_tfidf_features(data, 'question1', 'question2',
+                                                pref='super_clean_concat_')
+    create_common_vocabulary_svd_tfidf_features(pref='super_clean_concat_')
+    create_distance_tfidf_features('question1', 'question2', pref='super_clean_concat_')
+    create_grouping_features(data, pref='super_clean_concat_')
+    create_most_common_words_features(data, 'question1', 'question2', pref='super_clean_concat_')
 
     # Create bigram features.
     data = load_preprocessed_data('bigram')
@@ -219,7 +237,7 @@ def create_common_words_count_features(data, pref=''):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO,
+    logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s: %(message)s',
                         datefmt='%m/%d/%Y %I:%M:%S %p')
     feature_engineering()
