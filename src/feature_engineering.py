@@ -34,6 +34,7 @@ from word2vec_features import create_word2vec_features
 from logistic_features import create_logistic_features
 from specific_word_counts_features import create_specific_word_counts
 from most_common_words import create_most_common_words_features
+from count_features import create_count_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -71,6 +72,7 @@ def feature_engineering():
     create_distance_tfidf_features('question1', 'question2')
     create_word2vec_features(data, 'words1', 'words2')
     create_grouping_features(data)
+    create_count_features(data)
 
     # Create stemma features.
     data = load_preprocessed_data('stemma_preprocess')
