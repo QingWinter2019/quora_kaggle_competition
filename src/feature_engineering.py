@@ -35,6 +35,7 @@ from logistic_features import create_logistic_features
 from specific_word_counts_features import create_specific_word_counts
 from most_common_words import create_most_common_words_features
 from count_features import create_count_features
+from wordnet_features import create_wordnet_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -146,8 +147,9 @@ def feature_engineering():
                                                 pref='clean_concat_')
     create_common_vocabulary_svd_tfidf_features(pref='clean_concat_')
     create_distance_tfidf_features('question1', 'question2', pref='clean_concat_')
-    create_grouping_features(data, pref='clean_concat_')
     create_most_common_words_features(data, 'question1', 'question2', pref='clean_concat_')
+    create_wordnet_features(data, pref='clean_concat_')
+    create_grouping_features(data, pref='clean_concat_')
 
     # Create super clean_concat features.
     data = load_preprocessed_data('super_clean_concat')

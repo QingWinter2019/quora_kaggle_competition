@@ -32,14 +32,22 @@ def create_grouping_features(df_all, pref=''):
     else:
         word2vec_features = pd.DataFrame()
 
+    if check_if_exists(pref + 'wordnet'):
+        wordnet_features = load_features(pref + 'wordnet').reset_index(drop=True)
+        columns += wordnet_features.columns.tolist()
+    else:
+        wordnet_features = pd.DataFrame()
+
     df_q1_q2 = pd.concat([common_words,
                           distance_tfidf_features,
                           word2vec_features,
+                          wordnet_features,
                           df_all[['question1', 'question2']].reset_index(drop=True)],
                          axis=1)
     df_q2_q1 = pd.concat([common_words,
                           distance_tfidf_features,
                           word2vec_features,
+                          wordnet_features,
                           df_all[['question2', 'question1']].reset_index(drop=True)],
                          axis=1)
     df_q2_q1.rename(columns={'question1': 'question2',
@@ -58,34 +66,35 @@ def create_grouping_features(df_all, pref=''):
     res = pd.DataFrame()
 
     groupers = ['min', 'max', 'mean']
-    for (col, grouper) in zip(columns, groupers):
+    for grouper in groupers:
+        for col in columns:
 
-        res[grouper + '_by_q1_' + col] = (
-            groupby_q1[col].transform(grouper)[0:len(df_q1_q2)])
-        res[grouper + '_by_q2_' + col] = (
-            groupby_q2[col].transform(grouper)[0:len(df_q1_q2)])
+            res[grouper + '_by_q1_' + col] = (
+                groupby_q1[col].transform(grouper)[0:len(df_q1_q2)])
+            res[grouper + '_by_q2_' + col] = (
+                groupby_q2[col].transform(grouper)[0:len(df_q1_q2)])
 
-        res[col] = df[col][0:len(df_q1_q2)]
-        res['rel_q1_' + col] = res.apply(
-            lambda x: np_utils.try_to_divide(x[col],
-                                             x[grouper + '_by_q1_' + col]),
-            axis=1)
-        res['req_q2_' + col] = res.apply(
-            lambda x: np_utils.try_to_divide(x[col],
-                                             x[grouper + '_by_q2_' + col]),
-            axis=1)
+            res[col] = df[col][0:len(df_q1_q2)]
+            res['rel_q1_' + col] = res.apply(
+                lambda x: np_utils.try_to_divide(x[col],
+                                                 x[grouper + '_by_q1_' + col]),
+                axis=1)
+            res['req_q2_' + col] = res.apply(
+                lambda x: np_utils.try_to_divide(x[col],
+                                                 x[grouper + '_by_q2_' + col]),
+                axis=1)
 
-        res[grouper + '_by_' + col] = 0
-        res[grouper + '_by_' + col][inds_q1_gr_q2] = res[
-            grouper + '_by_q1_' + col]
-        res[grouper + '_by_' + col][inds_q2_gr_q1] = res[
-            grouper + '_by_q2_' + col]
-        res['rel_' + col] = res.apply(
-            lambda x: np_utils.try_to_divide(x[col],
-                                             x[grouper + '_by_' + col]),
-            axis=1)
+            res[grouper + '_by_' + col] = 0
+            res[grouper + '_by_' + col][inds_q1_gr_q2] = res[
+                grouper + '_by_q1_' + col]
+            res[grouper + '_by_' + col][inds_q2_gr_q1] = res[
+                grouper + '_by_q2_' + col]
+            res['rel_' + col] = res.apply(
+                lambda x: np_utils.try_to_divide(x[col],
+                                                 x[grouper + '_by_' + col]),
+                axis=1)
 
-        del res[col]
+            del res[col]
 
     add_features(feature_class, res.columns.tolist())
     dump_features(feature_class, res)

@@ -210,7 +210,17 @@ def modelling():
 #     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
 #     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
 #     ],
-    ['count',
+#    ['count',
+#     'super_clean_concat_most_common_words', 'specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
+#     'noun_common_words', 'noun_grouping', 'super_clean_concat_common_words',
+#     'super_clean_concat_grouping', 'clean_concat_tfidf', 'common_words', 'grouping',
+#     'tfidf', 'distance_tfidf', 'word2vec', 'logistic', 'stemma_common_words',
+#     'stemma_grouping', 'stemma_tfidf', 'stemma_distance_tfidf',
+#     'stemma_word2vec', 'stemma_stopwords_common_words',
+#     'stemma_stopwords_grouping', 'stemma_stopwords_tfidf',
+#     'stemma_stopwords_distance_tfidf', 'stemma_stopwords_word2vec'
+#     ],
+    ['count', 'clean_concat_wordnet',
      'super_clean_concat_most_common_words', 'specific_words', 'bigram_common_words', 'bigram_grouping', 'bigram_tfidf',
      'noun_common_words', 'noun_grouping', 'super_clean_concat_common_words',
      'super_clean_concat_grouping', 'clean_concat_tfidf', 'common_words', 'grouping',
@@ -231,6 +241,7 @@ def modelling():
     class_feature_names = ['specific_words']
     class_feature_names = ['most_common_words']
     class_feature_names = ['count']
+    class_feature_names = ['wordnet']
     generate_predictions(estimators, names, par_grids, xgb_class_features,
                          class_feature_names, test_ids, y_train, sparse=True,
                          norm=False)
