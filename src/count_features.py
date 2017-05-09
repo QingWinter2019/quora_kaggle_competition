@@ -30,8 +30,14 @@ def create_count_features(df_all, pref=''):
 
     # Create count of q1 and q2 features.
     res = pd.DataFrame()
-    res['q2count'] = df.groupby('question1')['question2'].transform('count')
-    res['q1count'] = df.groupby('question2')['question1'].transform('count')
+    grouper1 = df.reset_index().groupby('question1')
+    grouper2 = df.reset_index().groupby('question2')
+    res['q1count'] = grouper1['question2'].transform('count')
+    res['q2count'] = grouper2['question1'].transform('count')
+    res['q1rank'] = grouper1['question2'].rank()
+    res['q2rank'] = grouper2['question1'].rank()
+    # res['hash1'] = grouper1['index'].transform(lambda x: x.iloc[0])
+    # res['hash2'] = grouper2['index'].transform(lambda x: x.iloc[0])
     res = res[0:len(df_q1_q2)]
 
     # Number of sentences count.
