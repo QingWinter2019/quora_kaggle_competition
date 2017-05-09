@@ -119,6 +119,7 @@ def feature_engineering():
     # For now we create only common_words_count and grouping features.
     data = load_preprocessed_data('concat_preprocess')
     create_common_words_count_features(data, pref='concat_')
+    create_word2vec_features(data, 'words1', 'words2', pref='concat_')
     create_grouping_features(data, pref='concat_')
 
     # Create Noun features.
@@ -147,6 +148,7 @@ def feature_engineering():
                                                 pref='clean_concat_')
     create_common_vocabulary_svd_tfidf_features(pref='clean_concat_')
     create_distance_tfidf_features('question1', 'question2', pref='clean_concat_')
+    create_word2vec_features(data, 'words1', 'words2', pref='clean_concat_')
     create_most_common_words_features(data, 'question1', 'question2', pref='clean_concat_')
     create_wordnet_features(data, pref='clean_concat_')
     create_grouping_features(data, pref='clean_concat_')
@@ -164,6 +166,7 @@ def feature_engineering():
                                                 pref='super_clean_concat_')
     create_common_vocabulary_svd_tfidf_features(pref='super_clean_concat_')
     create_distance_tfidf_features('question1', 'question2', pref='super_clean_concat_')
+    create_word2vec_features(data, 'words1', 'words2', pref='super_clean_concat_')
     create_grouping_features(data, pref='super_clean_concat_')
     create_most_common_words_features(data, 'question1', 'question2', pref='super_clean_concat_')
 
