@@ -237,7 +237,7 @@ def modelling():
      'clean_concat_distance_tfidf', 'clean_concat_word2vec',
      'clean_concat_wordnet',
      'bigram_common_words', 'bigram_tfidf', 'bigram_grouping',
-     'specific_words', 'logistic', 'magic_features']
+     'specific_words', 'logistic', 'magic']
     ]
     # class_feature_names = ['stemma_stopwords_regular', 'standard_stemma_stopwords_mix']
     class_feature_names = ['damerau_levenstein']
