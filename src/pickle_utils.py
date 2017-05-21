@@ -26,7 +26,10 @@ def load_X(feature_classes, train_size, sparse=False, norm=True):
             res = scaler.fit_transform(res)
     else:
         for df in data:
-            df.reset_index(inplace=True, drop=True)
+            try:
+                df.reset_index(inplace=True, drop=True)
+            except:
+                df = pd.DataFrame(df)
         res = np.concatenate([df.values for df in data], axis=1)
 
     logging.info('Features are loaded.')
