@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 import xgboost as xgb
 from xgboost import XGBClassifier
+# from xgb_utils import XGBClassifier
 
 from pickle_utils import dump_metafeatures
 from globals import CONFIG
@@ -115,7 +116,7 @@ def tune_parameters(estimator, name, param_grid, X, y, cv):
         estimator.set_params(**grid)
         logging.info('Params: %s' % grid)
         mean_score, opt_n_estimators = cross_validation(estimator, X, y, cv,
-                                                        use_watch_list=True)
+                                                        use_watch_list=False)
 
         if isinstance(estimator, xgb.XGBClassifier):
             grid['n_estimators'] = opt_n_estimators
@@ -151,7 +152,7 @@ def get_classifiers(names):
                                 objective='binary:logistic',
                                 reg_alpha=0,
                                 reg_lambda=1,
-                                scale_pos_weight=1,
+                                # scale_pos_weight=1,
                                 seed=CONFIG['RANDOM_SEED'],
                                 silent=True,
                                 subsample=0.9)
