@@ -12,7 +12,7 @@ class XGBClassifier:
                  min_child_weight=1., missing=None, n_estimators=100,
                  nthread=-1, objective='binary:logistic', reg_alpha=1.,
                  reg_lambda=0., reg_lambda_bias=0., seed=0, silent=True,
-                 subsample=1., tree_method='approx'):
+                 subsample=1., tree_method='hist', max_leaves=255):
         self.param = {
             "objective": objective,
             "booster": booster,
@@ -31,7 +31,9 @@ class XGBClassifier:
             "nthread": nthread if nthread != -1 else cpu_count(),
             "max_delta_step": max_delta_step,
 #            "num_class": num_class,
-            "tree_method": tree_method
+            "tree_method": tree_method,
+            "grow_policy": 'lossguide',
+            "max_leaves": max_leaves
         }
         self.missing = missing if missing is not None else np.nan
         self.n_estimators = n_estimators
@@ -73,7 +75,6 @@ class XGBClassifier:
                     self.param["subsample"],
                     self.param['tree_method'],
                 ))
-
 
     def set_params(self, **params):
         for key in params:
