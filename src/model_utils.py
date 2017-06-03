@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import math
+import pandas as pd
 from sklearn.grid_search import ParameterGrid
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
@@ -9,7 +10,7 @@ from xgboost import XGBClassifier
 # from xgb_utils import XGBClassifier
 from pylightgbm.models import GBMClassifier
 
-from pickle_utils import dump_metafeatures
+from pickle_utils import dump_metafeatures, dump_feature_importances
 from globals import CONFIG
 
 # Parameters for Xgboost
@@ -41,6 +42,7 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
     logging.info('Doing cross validation.')
 
     mean_score = None
+    feature_importances = None
     opt_n_estimators = None
     if filename is not None:
         metafeatures = np.zeros((len(y), 1))
@@ -48,8 +50,12 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
     for i, (train_ind, test_ind) in enumerate(cv):
 
         # Split model into training and validation sets.
-        X_train, y_train = X[np.array(train_ind)], y[np.array(train_ind)]
-        X_test, y_test = X[np.array(test_ind)], y[np.array(test_ind)]
+        if isinstance(X, pd.DataFrame):
+            X_train, y_train = X.iloc[np.array(train_ind)], y[np.array(train_ind)]
+            X_test, y_test = X.iloc[np.array(test_ind)], y[np.array(test_ind)]
+        else:
+            X_train, y_train = X[np.array(train_ind)], y[np.array(train_ind)]
+            X_test, y_test = X[np.array(test_ind)], y[np.array(test_ind)]
 
         if isinstance(estimator, XGBClassifier) and use_watch_list:
             # Fit and monitor the progress on test set.
@@ -80,6 +86,12 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
         train_score = score(y_train, y_train_pred)
         test_score = score(y_test, y_test_pred)
 
+        if isinstance(X, pd.DataFrame) and (filename is not None):
+            if feature_importances is None:
+                feature_importances = get_feature_importances(estimator, X_test, y_test, test_score)
+            else:
+                feature_importances += get_feature_importances(estimator, X_test, y_test, test_score)
+
         if mean_score is None:
             mean_score = test_score
         else:
@@ -90,6 +102,10 @@ def cross_validation(estimator, X, y, cv, use_watch_list=False, filename=None):
 
     if filename is not None:
         dump_metafeatures(metafeatures, filename)
+
+    if isinstance(X, pd.DataFrame) and (filename is not None):
+        feature_importances /= len(cv)
+        dump_feature_importances(feature_importances, filename)
 
     mean_score /= len(cv)
     logging.info('Cross validation is done.')
@@ -131,6 +147,22 @@ def tune_parameters(estimator, name, param_grid, X, y, cv):
     return best_params, best_score
 
 
+def get_feature_importances(estimator, X_test, y_test, test_score):
+
+    feature_importances = pd.Series(
+            np.zeros((X_test.shape[1], )), index=X_test.columns)
+
+    for c in X_test.columns:
+        X = X_test.copy()
+        c_min, c_max = X_test[c].min(), X_test[c].max()
+        inds = (X_test[c] - c_min) > (c_max - X_test[c])
+        X[c][inds], X[c][~inds] = c_min, c_max
+        y_pred = rescale_preds(estimator.predict_proba(X)[:, 1])
+        new_score = score(y_test, y_pred)
+        feature_importances[c] = new_score - test_score
+
+    return feature_importances
+
 def get_classifiers(names):
 
     classifiers = []
@@ -170,30 +202,30 @@ def get_classifiers(names):
                                 config="",
                                 application='binary',
                                 num_iterations=10,
-                                learning_rate=0.1,
+                                learning_rate=0.01,
                                 num_leaves=127,
-                                tree_learner="serial",
+                                tree_learner="feature",
                                 num_threads=-1,
-                                min_data_in_leaf=100,
+                                min_data_in_leaf=10,
                                 metric='binary_logloss,',
                                 is_training_metric='False',
-                                feature_fraction=1.,
+                                feature_fraction=0.9,
                                 feature_fraction_seed=2,
-                                bagging_fraction=1.,
+                                bagging_fraction=0.9,
                                 bagging_freq=0,
                                 bagging_seed=3,
                                 metric_freq=1,
                                 early_stopping_round=0,
                                 max_bin=255,
-                                is_unbalance=False,
+                                is_unbalance=True,
                                 num_class=1,
-                                boosting_type='gbdt',
+                                boosting_type='goss',
                                 min_sum_hessian_in_leaf=10,
                                 drop_rate=0.01,
                                 drop_seed=4,
                                 max_depth=-1,
                                 lambda_l1=0.,
-                                lambda_l2=0.,
+                                lambda_l2=1.,
                                 min_gain_to_split=0.,
                                 verbose=False,
                                 model=None)
@@ -217,7 +249,7 @@ def get_param_grids(names):
         elif name == 'ExtraTreesClassifier':
             param_grid = {'max_features': ['auto', 0.5, 0.9, 1.0]}
         elif name == 'GBMClassifier':
-            param_grid = {'num_iterations': [2000]}
+            param_grid = {'num_iterations': [500]}
         else:
             raise ValueError('Unknown classifier name.')
 

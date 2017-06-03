@@ -11,6 +11,7 @@ from globals import CONFIG
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
 PICKLE_DIR = os.path.join(BASE_DIR, CONFIG['PICKLED_DIR'])
 METAFEATURES_DIR = os.path.join(PICKLE_DIR, CONFIG['METAFEATURES_DIR'])
+FEATURE_IMPORTANCES_DIR = os.path.join(PICKLE_DIR, CONFIG['FEATURE_IMPORTANCES_DIR'])
 
 
 def load_X(feature_classes, train_size, sparse=False, norm=True):
@@ -32,6 +33,12 @@ def load_X(feature_classes, train_size, sparse=False, norm=True):
                 df = pd.DataFrame(df)
         res = np.concatenate([df.values for df in data], axis=1)
 
+        cols = []
+        for (fc, df) in zip(feature_classes, data):
+            new_cols = [fc + '$' + c for c in df.columns]
+            cols += new_cols
+        res = pd.DataFrame(res, columns=cols)
+
     logging.info('Features are loaded.')
     return res[:train_size], res[train_size:]
 
@@ -50,6 +57,15 @@ def dump_features(feature_class, data):
     pickle_file = os.path.join(PICKLE_DIR, '%s_features.pickle' % feature_class)
     with open(pickle_file, 'wb') as file:
         pickle.dump(data, file, pickle.HIGHEST_PROTOCOL)
+
+
+def dump_feature_importances(feature_importances, filename):
+
+    if not os.path.exists(FEATURE_IMPORTANCES_DIR):
+        os.makedirs(FEATURE_IMPORTANCES_DIR)
+
+    with open(os.path.join(FEATURE_IMPORTANCES_DIR, filename + '.pickle'), 'wb') as file:
+        pickle.dump(feature_importances, file, pickle.HIGHEST_PROTOCOL)
 
 
 def dump_metafeatures(metafeatures, filename):
