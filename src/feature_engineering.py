@@ -36,6 +36,7 @@ from specific_word_counts_features import create_specific_word_counts
 from most_common_words import create_most_common_words_features
 from count_features import create_count_features
 from wordnet_features import create_wordnet_features
+from magic_features import create_magic_features
 
 # Global directories.
 BASE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -176,6 +177,10 @@ def feature_engineering():
     create_tfidf_features(data, columns=['question2'], qcol='question1',
                           unique=True, pref='bigram_')
     create_grouping_features(data, pref='bigram_')
+
+    # Create magic features.
+    data = load_preprocessed_data('standard_preprocess')
+    create_magic_features(data)
 
     dump_feature_classes_and_dict()
     logging.info('FINISHED FEATURE ENGINEERING')
