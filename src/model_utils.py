@@ -6,6 +6,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import ExtraTreesClassifier
 import xgboost as xgb
 from xgboost import XGBClassifier
+# from xgb_utils import XGBClassifier
+from pylightgbm.models import GBMClassifier
 
 from pickle_utils import dump_metafeatures
 from globals import CONFIG
@@ -115,7 +117,7 @@ def tune_parameters(estimator, name, param_grid, X, y, cv):
         estimator.set_params(**grid)
         logging.info('Params: %s' % grid)
         mean_score, opt_n_estimators = cross_validation(estimator, X, y, cv,
-                                                        use_watch_list=True)
+                                                        use_watch_list=False)
 
         if isinstance(estimator, xgb.XGBClassifier):
             grid['n_estimators'] = opt_n_estimators
@@ -151,7 +153,7 @@ def get_classifiers(names):
                                 objective='binary:logistic',
                                 reg_alpha=0,
                                 reg_lambda=1,
-                                scale_pos_weight=1,
+                                # scale_pos_weight=1,
                                 seed=CONFIG['RANDOM_SEED'],
                                 silent=True,
                                 subsample=0.9)
@@ -163,6 +165,38 @@ def get_classifiers(names):
                                        max_features='auto',
                                        n_jobs=-1,
                                        random_state=CONFIG['RANDOM_SEED'])
+        elif name == 'GBMClassifier':
+            clf = GBMClassifier(exec_path="~/LightGBM/lightgbm",
+                                config="",
+                                application='binary',
+                                num_iterations=10,
+                                learning_rate=0.1,
+                                num_leaves=127,
+                                tree_learner="serial",
+                                num_threads=-1,
+                                min_data_in_leaf=100,
+                                metric='binary_logloss,',
+                                is_training_metric='False',
+                                feature_fraction=1.,
+                                feature_fraction_seed=2,
+                                bagging_fraction=1.,
+                                bagging_freq=0,
+                                bagging_seed=3,
+                                metric_freq=1,
+                                early_stopping_round=0,
+                                max_bin=255,
+                                is_unbalance=False,
+                                num_class=1,
+                                boosting_type='gbdt',
+                                min_sum_hessian_in_leaf=10,
+                                drop_rate=0.01,
+                                drop_seed=4,
+                                max_depth=-1,
+                                lambda_l1=0.,
+                                lambda_l2=0.,
+                                min_gain_to_split=0.,
+                                verbose=False,
+                                model=None)
         else:
             raise ValueError('Unknown classifier name.')
 
@@ -182,6 +216,8 @@ def get_param_grids(names):
             param_grid = {'max_depth': [6, 9]}
         elif name == 'ExtraTreesClassifier':
             param_grid = {'max_features': ['auto', 0.5, 0.9, 1.0]}
+        elif name == 'GBMClassifier':
+            param_grid = {'num_iterations': [2000]}
         else:
             raise ValueError('Unknown classifier name.')
 
@@ -202,6 +238,8 @@ def get_stacking_param_grids(names):
             param_grid = {'max_depth': [6, 9]}
         elif name == 'ExtraTreesClassifier':
             param_grid = {'max_features': ['auto', 0.5, 0.9, 1.0]}
+        elif name == 'GBMClassifier':
+            param_grid = {'num_iterations': [200]}
         else:
             raise ValueError('Unknown classifier name.')
 
